@@ -1,0 +1,53 @@
+.weekly-goals-list .input {
+  background: none;
+  border-style: none;
+}
+.weekly-goals-list {
+  margin: 0 10px 0 30px;
+}
+.input:focus {
+  outline: none;
+  color: white; /* Removes the default border */
+}
+.weekly-goals-list .add-goal {
+  display: none;
+}
+.weekly-goals-list form {
+  display: flex;
+}
+.weekly-goals-list .add {
+  width: 30px;
+  height: 30px;
+  opacity: 20%;
+}
+.weekly-goals-list .add:hover {
+  opacity: 100%;
+  transition: ease-in;
+}
+.weekly-goals-list ul {
+  list-style: none;
+  padding: 0;
+}
+.weekly-goals-list ul li {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  line-height: 100%;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+.weekly-goals-list li span {
+  margin: 0 3px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+.weekly-goals-list .remove-goal {
+  cursor: pointer;
+}
+
+.check {
+  color: rgb(57, 100, 57);
+}

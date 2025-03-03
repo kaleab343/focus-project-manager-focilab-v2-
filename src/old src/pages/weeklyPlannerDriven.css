@@ -1,0 +1,83 @@
+@import url("https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;1,400;1,700&display=swap");
+
+.container .app {
+  width: 100% !important;
+}
+p {
+  width: 100%;
+  line-height: 190%;
+  font-size: 1.1rem;
+}
+h3 {
+  font-size: 1.3rem;
+}
+li {
+  font-size: 1rem;
+  line-height: 190%;
+}
+hr {
+  margin-top: 20px;
+}
+.flex {
+  display: flex;
+}
+ul {
+  padding: 0;
+  list-style: none;
+}
+li {
+}
+footer p {
+  text-align: center;
+}
+.long-button {
+  width: auto !important;
+}
+.green {
+  color: rgb(17, 139, 17);
+}
+/* .home {
+  position: absolute;
+  top: 0;
+  left: 0;
+} */
+bold {
+  font-weight: bold;
+}
+
+.display {
+  display: inline-block !important;
+}
+@media (max-width: 767px) {
+  .container {
+    padding-bottom: 10px;
+  }
+  .app {
+    margin: 10px 20px;
+  }
+  .main {
+    flex-wrap: wrap;
+  }
+  .ch {
+    width: 100% !important;
+    margin-left: 30px;
+  }
+  .weekly-planner {
+    padding: 0;
+  }
+  .week-name-view {
+    display: none;
+  }
+  .weekly-planner .bottom-nav {
+    display: flex;
+    justify-content: space-around;
+  }
+  .weekly-planner .save {
+    display: block;
+    margin-left: 10px;
+    position: inherit;
+  }
+  .weekly-planner .theme-button {
+    position: unset;
+  }
+}

@@ -1,0 +1,37 @@
+.daily-planner {
+  width: 100%;
+  padding: 0 25%;
+}
+.daily-planner h2,
+h4 {
+  margin: 0;
+}
+.daily-planner h4 {
+  margin-bottom: 10px;
+}
+.daily-planner .main {
+  display: flex;
+  min-height: 70vh;
+}
+.daily-planner .main .one {
+  width: 70%;
+}
+.daily-planner .header {
+  text-align: center;
+  margin: 20px 0;
+}
+.daily-planner .header p {
+  margin: 0;
+  position: relative;
+  bottom: 6px;
+  font-size: small;
+}
+
+@media screen and (max-width: 768px) {
+  .daily-planner .main {
+    flex-wrap: wrap;
+  }
+  .daily-planner {
+    padding: 0 10px;
+  }
+}

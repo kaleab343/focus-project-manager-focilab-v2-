@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    svg {
+      color: var(--text-primary, #000);
+    }
+  </style>
+  <rect x="0.5" y="0.5" width="31" height="31" rx="15.5" stroke="black"/>
+  <rect x="7.92871" y="7.92871" width="16.1429" height="16.1429" rx="8.07143" stroke="black"/>
+  <rect x="15.2004" y="15.2004" width="1.6" height="1.6" rx="0.8" fill="black" stroke="black" stroke-width="1.6"/>
+</svg>

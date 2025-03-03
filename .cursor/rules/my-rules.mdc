@@ -1,0 +1,13 @@
+---
+description: stying rules
+globs: 
+---
+
+# Your rule content
+
+use tailwind for stying don't create css files 
+don't use all version of tailwind cuz most things are deprecated use tailwind v4 and above syntax
+use lucide fonts
+
+all icons should be black or white depending on the active theme 
+the project will be a chrome extension eventaully so consider that 

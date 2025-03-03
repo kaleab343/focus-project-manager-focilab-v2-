@@ -1,0 +1,58 @@
+@import url('https://fonts.cdnfonts.com/css/kanit?styles=19865,19869,19863,19864');
+@import "tailwindcss";
+/* Additional custom styles can be added below */
+@layer base {
+  :root {
+    font-family: 'Kanit', system-ui, Avenir, Helvetica, Arial, sans-serif!important;
+    line-height: 1.5;
+    font-weight: 400;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    background-color: var(--background);
+    color: var(--text-primary);
+    font-family: 'Kanit', system-ui, Avenir, Helvetica, Arial, sans-serif!important;
+  }
+  h1,h2,h3,h4,h5,h6 {
+    /* kanit bold */
+    font-weight: bold;
+  }
+}
+
+@layer components {
+  .btn {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-radius: 0.25rem;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+  
+  .btn-primary {
+    background-color: var(--accent);
+    color: var(--text-primary);
+  }
+  
+  .btn-primary:hover {
+    opacity: 0.9;
+  }
+  
+  .btn-secondary {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+  }
+  
+  .btn-secondary:hover {
+    opacity: 0.9;
+  }
+}

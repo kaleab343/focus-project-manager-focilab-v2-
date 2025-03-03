@@ -1,0 +1,10 @@
+.goals-page {
+  max-width: 720px;
+  width: 95%;
+}
+
+@media (max-width: 767px) {
+  .goals-page {
+    width: 93vw;
+  }
+}

@@ -1,0 +1,58 @@
+#new-todo {
+  background: none;
+  border-style: none;
+}
+.todo-list {
+}
+/* Add this CSS rule */
+.remove-todo {
+  visibility: hidden;
+}
+
+.todo:hover .remove-todo {
+  visibility: visible;
+}
+
+.input:focus {
+  outline: none;
+  color: white; /* Removes the default border */
+}
+.todo-list .add-todo {
+  display: none;
+}
+.todo-list form {
+  display: flex;
+}
+.todo-list .add {
+  width: 30px;
+  height: 30px;
+  opacity: 20%;
+}
+.todo-list .add:hover {
+  opacity: 100%;
+  transition: ease-in;
+}
+.todo-list ul {
+  list-style: none;
+  padding: 0;
+}
+.todo-list ul li {
+  margin: 0;
+  padding: 0 0;
+  display: flex;
+  align-items: first baseline;
+  line-height: 100%;
+  margin-bottom: 10px;
+}
+.todo-list li span {
+  margin: 0 3px;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+}
+.todo-list li input {
+  margin-top: 3px;
+}
+.todo-list .remove-todo {
+  cursor: pointer;
+}

@@ -1,0 +1,26 @@
+.nav {
+  width: 100%;
+
+  color: white;
+  background-color: inherit;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.nav .logo {
+  font-size: 1.4rem;
+  font-family: "kalam";
+  font-weight: bold;
+  padding: 10px 0;
+  margin: 0 0;
+  display: block;
+  color: black;
+  height: 50px;
+}
+.padding {
+  padding: 10px !important;
+}
+.nav .button {
+  width: 80px;
+  height: 25px;
+}

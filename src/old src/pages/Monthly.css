@@ -1,0 +1,65 @@
+.monthly-page {
+  width: 100vw;
+  padding: 0 15vw;
+
+  min-width: 400px;
+  max-width: 1400px;
+  font-family: Arial, sans-serif;
+}
+
+.calendar {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  /* width: 100%; */
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  height: 200px;
+  /* width: 100%; */
+  /* max-width: 600px;
+  min-width: 400px; */
+}
+
+.calendar-day {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 24px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+}
+.planner .cont {
+  display: flex;
+  min-height: 70vh;
+}
+.day {
+  border: none;
+}
+
+.empty-day {
+  border: none;
+}
+
+.current-day {
+  background-color: #ffcc00;
+}
+
+.month-name {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+.monthly-page h2 {
+  text-align: center;
+}
+.monthly-page .main {
+  width: 70%;
+  justify-content: center;
+}
+
+#monthly-goals {
+  margin-top: 10px;
+}
