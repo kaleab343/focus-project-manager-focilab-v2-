@@ -58,7 +58,7 @@ const Clock: React.FC<ClockProps> = ({ userName = 'kirubel' }) => {
       left: '50%',
       transform: 'translate(-50%, -50%)'
     }}>
-      <h2 className="text-[1.3rem] font-normal">{`${greeting}, ${userName}`}</h2>
+      <h2 className="text-[1.3rem] font-light">{`${greeting}, ${userName}`}</h2>
       <div className="font-['Kanit',sans-serif] flex items-end justify-center">
         
         <span className="text-[7rem] font-light leading-none mr-2">{timeData.hours}:{timeData.minutes}</span>
@@ -67,7 +67,7 @@ const Clock: React.FC<ClockProps> = ({ userName = 'kirubel' }) => {
           <span className="text-[3rem] font-light leading-none">{timeData.seconds}</span>
         </div>
       </div>
-      <div className="text-[1.1rem] text-[var(--text-secondary)]">{formatDate()}</div>
+      <div className="text-[1.3rem] text-[var(--text-secondary)]">{formatDate()}</div>
     </div>
   );
 };

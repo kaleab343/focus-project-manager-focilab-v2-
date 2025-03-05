@@ -40,7 +40,7 @@ const Home: React.FC = () => {
         </div>
         <Clock />
         <div className="absolute right-0 top-0 mx-[25px] mt-[24vh] w-[20%]">
-          <DailyTodo />
+          <DailyTodo selectedDay={"Today"} />
         </div>
       </div>
 

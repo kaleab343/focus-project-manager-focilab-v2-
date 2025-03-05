@@ -4,9 +4,14 @@ interface Todo {
   id: string;
   text: string;
   completed: boolean;
+  date: string;
 }
 
-const DailyTodo: React.FC = () => {
+interface DailyTodoProps {
+  selectedDay: string;
+}
+
+const DailyTodo: React.FC<DailyTodoProps> = ({ selectedDay }) => {
   // Initialize state with localStorage data
   const [todos, setTodos] = useState<Todo[]>(() => {
     try {
@@ -22,6 +27,19 @@ const DailyTodo: React.FC = () => {
   const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
 
+  // Get current day abbreviation (e.g., "Mon", "Tue", etc.)
+  const getCurrentDayAbbrev = () => {
+    return new Date().toLocaleDateString('en-US', { weekday: 'short' });
+  };
+
+  // Get the actual day abbreviation to use for filtering
+  const dayAbbrev = selectedDay === "Today" ? getCurrentDayAbbrev() : selectedDay;
+
+  const filteredTodos = todos.filter(todo => todo.date === dayAbbrev);
+
+  const fullWeekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const fullDayName = selectedDay === "Today" ? "Today" : fullWeekDays[fullWeekDays.findIndex(day => day.startsWith(selectedDay))];
+
   // Save todos to localStorage whenever they change
   useEffect(() => {
     try {
@@ -36,7 +54,8 @@ const DailyTodo: React.FC = () => {
       const newTodo: Todo = {
         id: Date.now().toString(),
         text: newTodoText.trim(),
-        completed: false
+        completed: false,
+        date: dayAbbrev // Use dayAbbrev instead of selectedDay
       };
       setTodos(prevTodos => [...prevTodos, newTodo]);
       setNewTodoText('');
@@ -93,9 +112,9 @@ const DailyTodo: React.FC = () => {
 
   return (
     <div className="rounded-lg p-4 w-full" >
-      <h2 className="mt-0 mb-4 text-2xl text-white">Today's Todo</h2>
+      <h2 className="mt-0 mb-4 text-2xl text-white">{fullDayName}'s Todo</h2>
       <div className="mb-2.5">
-        {todos.map(todo => (
+        {filteredTodos.map(todo => (
           <div key={todo.id} className="flex items-center mb-2 relative group">
             <input
               type="checkbox"
