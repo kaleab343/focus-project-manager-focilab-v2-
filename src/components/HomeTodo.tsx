@@ -1,5 +1,4 @@
 import React, { useState, useEffect, KeyboardEvent, useRef } from 'react';
-import { useDrag } from 'react-dnd';
 import { generateTodoList, getContextFromLocalStorage, TodoItemType } from '../../utils/agets';
 
 interface Todo {
@@ -10,16 +9,11 @@ interface Todo {
   isAISuggestion?: boolean;
 }
 
-interface DailyTodoProps {
+interface HomeTodoProps {
   selectedDay: string;
 }
 
-// Define the drag item type
-export const ItemTypes = {
-  TODO: 'todo',
-};
-
-const DailyTodo: React.FC<DailyTodoProps> = ({ selectedDay }) => {
+const HomeTodo: React.FC<HomeTodoProps> = ({ selectedDay }) => {
   const [todos, setTodos] = useState<Todo[]>(() => {
     try {
       const storedTodos = localStorage.getItem('dailyTodos');
@@ -231,16 +225,8 @@ const DailyTodo: React.FC<DailyTodoProps> = ({ selectedDay }) => {
     }
   };
 
-  // Component for a draggable todo item
-  const DraggableTodoItem: React.FC<{ todo: Todo }> = ({ todo }) => {
-    const [{ isDragging }, dragRef] = useDrag({
-      type: ItemTypes.TODO,
-      item: todo,
-      collect: (monitor) => ({
-        isDragging: !!monitor.isDragging(),
-      }),
-    });
-
+  // Component for a todo item without drag functionality
+  const TodoItem: React.FC<{ todo: Todo }> = ({ todo }) => {
     return (
       <div className="flex items-center mb-2 relative group">
         <input
@@ -310,10 +296,9 @@ const DailyTodo: React.FC<DailyTodoProps> = ({ selectedDay }) => {
               className="inline-flex items-center cursor-pointer break-words text-lg"
             >
               <span 
-                ref={dragRef as any}
                 className={`inline-block ${
                   todo.completed ? 'line-through text-white/50' : ''
-                } ${isDragging ? 'opacity-50' : 'opacity-100'}`}
+                }`}
                 style={{ cursor: 'text' }}
                 onDoubleClick={(e) => {
                   e.preventDefault();
@@ -352,7 +337,7 @@ const DailyTodo: React.FC<DailyTodoProps> = ({ selectedDay }) => {
 
       <div className="mb-2.5">
         {filteredTodos.map(todo => (
-          <DraggableTodoItem key={todo.id} todo={todo} />
+          <TodoItem key={todo.id} todo={todo} />
         ))}
       </div>
       
@@ -380,4 +365,4 @@ const DailyTodo: React.FC<DailyTodoProps> = ({ selectedDay }) => {
   );
 };
 
-export default DailyTodo; 
+export default HomeTodo; 

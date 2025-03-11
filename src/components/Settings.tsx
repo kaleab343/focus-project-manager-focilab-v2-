@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Settings2, X, Sun, Moon } from 'lucide-react';
+import { Settings2, X, Sun, Moon, RefreshCw } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useScore } from '../context/ScoreContext';
 
@@ -14,6 +14,7 @@ const Settings: React.FC<SettingsProps> = () => {
   const { theme, toggleTheme } = useTheme();
   const { score, setScore } = useScore();
   const [tempScore, setTempScore] = useState(String(score));
+  const [resetConfirm, setResetConfirm] = useState(false);
 
   useEffect(() => {
     setTempScore(String(score));
@@ -30,6 +31,28 @@ const Settings: React.FC<SettingsProps> = () => {
     setScore(newScore);
   };
 
+  const resetWelcomeFlow = () => {
+    if (!resetConfirm) {
+      setResetConfirm(true);
+      return;
+    }
+    
+    // Remove welcome flow completion flag
+    localStorage.removeItem('hasCompletedWelcome');
+    
+    // Optionally clear other related data
+    localStorage.removeItem('userName');
+    
+    // Reset confirmation state
+    setResetConfirm(false);
+    
+    // Close settings
+    setIsOpen(false);
+    
+    // Reload the page to show welcome flow
+    window.location.reload();
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -39,6 +62,7 @@ const Settings: React.FC<SettingsProps> = () => {
         !buttonRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
+        setResetConfirm(false);
       }
     };
 
@@ -73,7 +97,10 @@ const Settings: React.FC<SettingsProps> = () => {
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>Settings</h3>
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={() => {
+                setIsOpen(false);
+                setResetConfirm(false);
+              }}
               className="p-1 hover:opacity-70 rounded-full transition-opacity duration-200"
               aria-label="Close settings"
             >
@@ -114,6 +141,28 @@ const Settings: React.FC<SettingsProps> = () => {
                   border: '1px solid var(--border)'
                 }}
               />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <span style={{ color: 'var(--text-secondary)' }}>Welcome Flow</span>
+              <button
+                onClick={resetWelcomeFlow}
+                className={`p-2 rounded-lg transition-colors duration-200 ${
+                  resetConfirm ? 'bg-red-500 text-white' : ''
+                }`}
+                style={{ 
+                  backgroundColor: resetConfirm 
+                    ? 'rgba(239, 68, 68, 0.8)' 
+                    : theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                  color: resetConfirm ? 'white' : 'var(--accent)'
+                }}
+                aria-label="Reset welcome flow"
+              >
+                <div className="flex items-center">
+                  <RefreshCw className="w-5 h-5 mr-1" />
+                  <span>{resetConfirm ? 'Confirm Reset' : 'Reset'}</span>
+                </div>
+              </button>
             </div>
           </div>
         </div>

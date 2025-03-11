@@ -1,7 +1,7 @@
 import React from 'react';
 import Clock from '../components/Clock';
 import Settings from '../components/Settings';
-import DailyTodo from '../components/DailyTodo';
+import HomeTodo from '../components/HomeTodo';
 import WeeklyTodo from '../components/WeeklyTodo';
 import { useScore } from '../context/ScoreContext';
 import { useTheme } from '../context/ThemeContext';
@@ -40,7 +40,7 @@ const Home: React.FC = () => {
         </div>
         <Clock />
         <div className="absolute right-0 top-0 mx-[25px] mt-[24vh] w-[20%]">
-          <DailyTodo selectedDay={"Today"} />
+          <HomeTodo selectedDay={"Today"} />
         </div>
       </div>
 

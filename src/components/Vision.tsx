@@ -24,14 +24,19 @@ const Vision: React.FC = () => {
     setVisionText(e.target.value);
   };
 
+  // Get user name from localStorage
+  const userName = localStorage.getItem('userName') || '';
+  const greeting = userName ? `${userName}'s Vision` : 'Your Vision';
+
   return (
-    <div className="rounded-lg p-4 w-full bg-[#1A1F2E]">
-      <h2 className="mt-0 mb-4 text-2xl text-white">Your Vision</h2>
+    <div className="rounded-lg p-4 w-full">
+      <h2 className="mt-0 text-2xl text-white">{greeting}</h2>
       <textarea
         placeholder="Write your vision here..."
         value={visionText}
         onChange={handleTextChange}
-        className="w-full h-[250px] p-3 rounded bg-[#0B0F17] text-white border-none resize-none focus:outline-none"
+        rows={3}
+        className="w-full py-3 px-1 rounded bg-[#0B0F17] text-white border-none resize-none focus:outline-none"
       />
     </div>
   );

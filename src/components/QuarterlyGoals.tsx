@@ -1,4 +1,6 @@
-import React, { useState, useEffect, KeyboardEvent } from 'react';
+import React, { useState, useEffect, KeyboardEvent, useRef } from 'react';
+import { generateQuarterlyGoals } from '../../utils/agets';
+import { Sparkles } from 'lucide-react';
 
 interface Goal {
   id: string;
@@ -15,6 +17,7 @@ const QuarterlyGoals: React.FC = () => {
   };
 
   const [currentQuarter, setCurrentQuarter] = useState<number>(getCurrentQuarter());
+  const actualCurrentQuarter = getCurrentQuarter();
   
   // Initialize state with localStorage data
   const [goals, setGoals] = useState<Goal[]>(() => {
@@ -30,6 +33,22 @@ const QuarterlyGoals: React.FC = () => {
   const [newGoalText, setNewGoalText] = useState('');
   const [editingGoalId, setEditingGoalId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
+  const inputRef = useRef<HTMLDivElement>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        setShowInput(false);
+        setNewGoalText('');
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Filter goals for current quarter
   const filteredGoals = goals.filter(goal => goal.quarter === currentQuarter);
@@ -104,24 +123,87 @@ const QuarterlyGoals: React.FC = () => {
     }
   };
 
+  // Generate quarterly goals using AI
+  const generateGoals = async () => {
+    try {
+      setIsGenerating(true);
+      
+      // Get vision and yearly goals from localStorage
+      const vision = localStorage.getItem('visionText') || '';
+      const yearlyGoals = JSON.parse(localStorage.getItem('yearlyGoals') || '[]')
+        .filter((goal: { completed: boolean }) => !goal.completed)
+        .map((goal: { text: string }) => goal.text);
+      
+      // Check if we have enough context to generate goals
+      if (!vision && yearlyGoals.length === 0) {
+        alert('Please add a vision statement and at least one yearly goal to generate quarterly goals.');
+        setIsGenerating(false);
+        return;
+      }
+      
+      // Generate quarterly goals
+      const generatedGoals = await generateQuarterlyGoals({ vision, yearlyGoals });
+      
+      // Add generated goals to the current quarter
+      if (generatedGoals.length > 0) {
+        const newGoals = generatedGoals.map(goal => ({
+          id: Date.now() + Math.random().toString(36).substring(2, 9),
+          text: goal.text,
+          completed: false,
+          quarter: currentQuarter
+        }));
+        
+        setGoals(prevGoals => [...prevGoals, ...newGoals]);
+      }
+    } catch (error) {
+      console.error('Error generating quarterly goals:', error);
+      alert('Failed to generate quarterly goals. Please try again later.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
-    <div className="rounded-lg p-4 w-full bg-[#1A1F2E]">
+    <div className="rounded-lg p-4 w-full">
       <div className="flex justify-between items-center mb-4">
         <h2 className="mt-0 text-2xl text-white">Q{currentQuarter} Goals</h2>
-        <div className="flex space-x-1">
-          {[1, 2, 3, 4].map(quarter => (
-            <button
-              key={quarter}
-              onClick={() => setCurrentQuarter(quarter)}
-              className={`w-8 h-8 flex items-center justify-center rounded-sm text-sm ${
-                quarter === currentQuarter 
-                  ? 'bg-emerald-700 text-white' 
-                  : 'bg-[#0B0F17] text-gray-400 hover:text-white'
-              }`}
-            >
-              Q{quarter}
-            </button>
-          ))}
+        <div className="flex space-x-2">
+          <div className="flex space-x-1">
+            {[1, 2, 3, 4].map(quarter => (
+              <button
+                key={quarter}
+                onClick={() => setCurrentQuarter(quarter)}
+                className={`w-8 h-8 flex items-center justify-center rounded-sm text-sm ${
+                  quarter === currentQuarter 
+                    ? 'bg-emerald-700 text-white' 
+                    : 'bg-[#0B0F17] text-gray-400 hover:text-white'
+                } ${quarter === actualCurrentQuarter ? 'border-1 border-white' : ''}`}
+              >
+                Q{quarter}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={generateGoals}
+            disabled={isGenerating}
+            className="flex items-center justify-center px-2 py-1 rounded-sm bg-emerald-700 text-white hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Generate goals with AI"
+          >
+            {isGenerating ? (
+              <span className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Generating...
+              </span>
+            ) : (
+              <span className="flex items-center">
+                <Sparkles className="h-4 w-4 mr-1" />
+                Generate
+              </span>
+            )}
+          </button>
         </div>
       </div>
       
@@ -174,7 +256,7 @@ const QuarterlyGoals: React.FC = () => {
       </div>
       
       {showInput ? (
-        <div className="mt-2.5">
+        <div className="mt-2.5" ref={inputRef}>
           <input
             type="text"
             value={newGoalText}
