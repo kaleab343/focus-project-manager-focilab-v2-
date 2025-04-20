@@ -20,12 +20,14 @@ import { type Milestone, type Project } from '../hooks/useProjects';
 
 interface ProjectCardProps {
   project: Project;
+  milestones: Milestone[];
   onEdit: (project: Project) => void;
   onDelete: (id: string) => void;
   onMilestoneToggle: (projectId: string, milestoneId: string, completed: boolean) => void;
   onMilestoneDelete: (projectId: string, milestoneId: string) => void;
   onStatusChange: (projectId: string, status: Project['status']) => void;
   onUpdateProject?: (projectId: string, updates: Partial<Project>) => void;
+  onAddMilestone?: (projectId: string, milestoneData: Omit<Milestone, 'id' | 'projectId'>) => void;
 }
 
 const getStatusColor = (status: Project['status']): "default" | "secondary" | "destructive" => {
@@ -34,6 +36,19 @@ const getStatusColor = (status: Project['status']): "default" | "secondary" | "d
       return 'default';
     case 'In Progress':
       return 'secondary';
+    case 'Completed':
+      return 'secondary';
+    default:
+      return 'default';
+  }
+};
+
+const getMilestoneStatusColor = (status: Milestone['status']): "default" | "secondary" | "destructive" => {
+  switch (status) {
+    case 'Not Started':
+      return 'default';
+    case 'In Progress':
+      return 'destructive';
     case 'Completed':
       return 'secondary';
     default:
@@ -52,12 +67,14 @@ const formatDate = (dateString?: string) => {
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ 
   project, 
+  milestones,
   onEdit, 
   onDelete, 
   onMilestoneToggle,
   onMilestoneDelete,
   onStatusChange,
-  onUpdateProject
+  onUpdateProject,
+  onAddMilestone
 }) => {
   const { theme } = useTheme();
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -66,7 +83,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
   const handleTitleSubmit = (value: string) => {
     const trimmedTitle = value.trim();
     if (onUpdateProject && trimmedTitle !== '') {
-      onUpdateProject(project.id, { name: trimmedTitle });
+      onUpdateProject(project.id, { title: trimmedTitle });
     }
     setIsEditingTitle(false);
   };
@@ -100,7 +117,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
           {isEditingTitle ? (
             <input
               type="text"
-              defaultValue={project.name}
+              defaultValue={project.title}
               onBlur={(e) => handleTitleSubmit(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
@@ -124,7 +141,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                 theme === 'dark' ? 'text-white' : 'text-gray-900'
               }`}
             >
-              {project.name}
+              {project.title}
             </h3>
           )}
           <DropdownMenu>
@@ -205,24 +222,28 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
           
           <div className="flex items-center gap-2">
             <div className="flex-1 flex flex-wrap gap-2 min-w-0">
-              {project.milestones.map((milestone) => (
+              {milestones.map((milestone) => (
                 <TooltipProvider key={milestone.id}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className="inline-flex items-center group/milestone">
                         <Badge 
-                          variant={milestone.completed ? "secondary" : "destructive"}
+                          variant={getMilestoneStatusColor(milestone.status)}
                           className="flex items-center gap-1 cursor-pointer transition-all hover:opacity-80"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onMilestoneToggle(project.id, milestone.id, !milestone.completed);
+                            onMilestoneToggle(
+                              project.id, 
+                              milestone.id, 
+                              milestone.status !== 'Completed'
+                            );
                           }}
                         >
                           <Flag className="h-3 w-3" />
                           <span className="truncate max-w-[80px]">
                             {milestone.name}
                           </span>
-                          {milestone.completed && (
+                          {milestone.status === 'Completed' && (
                             <CheckCircle2 className="h-3 w-3 ml-1" />
                           )}
                         </Badge>
@@ -243,9 +264,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                     </TooltipTrigger>
                     <TooltipContent className="flex flex-col gap-1" onClick={(e) => e.stopPropagation()}>
                       <p className="font-semibold">{milestone.name}</p>
-                      <p className="text-xs opacity-90">Target: {formatDate(milestone.targetDate)}</p>
+                      <p className="text-xs opacity-90">Due: {formatDate(milestone.dueDate)}</p>
                       <p className="text-xs opacity-90">
-                        Status: {milestone.completed ? 'Completed' : 'In Progress'}
+                        Status: {milestone.status}
                       </p>
                       <p className="text-xs mt-1 text-muted-foreground">Click to toggle completion</p>
                     </TooltipContent>
@@ -253,39 +274,59 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                 </TooltipProvider>
               ))}
             </div>
-            <div className="flex gap-1 shrink-0">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(project);
-                }}
-                className={`h-8 w-8 ${
-                  theme === 'dark' 
-                    ? 'text-white hover:bg-white/10' 
-                    : 'text-gray-700 hover:bg-gray-100'
-                } transition-colors`}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(project.id);
-                }}
-                className={`h-8 w-8 text-destructive ${
-                  theme === 'dark' ? 'hover:bg-destructive/10' : 'hover:bg-destructive/20'
-                } transition-colors`}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
           </div>
         </div>
       </CardContent>
+      
+      <CardFooter className={`p-4 pt-0 flex justify-end ${
+        theme === 'dark' ? 'text-white/70' : 'text-gray-600'
+      }`}>
+        <div className="flex gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(project);
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Edit Project</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (window.confirm('Are you sure you want to delete this project?')) {
+                      onDelete(project.id);
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Delete Project</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </CardFooter>
     </Card>
   );
 };

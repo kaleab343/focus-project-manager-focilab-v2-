@@ -3,6 +3,7 @@ import Clock from '../components/Clock';
 import Settings from '../components/Settings';
 import HomeTodo from '../components/HomeTodo';
 import WeeklyTodo from '../components/WeeklyTodo';
+import Nav from '../components/Nav';
 import { useScore } from '../context/ScoreContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -53,6 +54,7 @@ const Home: React.FC = () => {
       </div> */}
 
       <Settings />
+      <Nav />
     </div>
   );
 };

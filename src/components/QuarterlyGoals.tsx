@@ -1,5 +1,5 @@
 import React, { useState, useEffect, KeyboardEvent, useRef } from 'react';
-import { generateQuarterlyGoals } from '../../utils/agets';
+import { generateQuarterlyGoals } from '../../utils/agents';
 import { Sparkles } from 'lucide-react';
 
 interface Goal {

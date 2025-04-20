@@ -1,8 +1,0 @@
-.goals-summary {
-  max-width: 720px;
-}
-@media (max-width: 767px) {
-  .goals-summary {
-    width: 93vw;
-  }
-}

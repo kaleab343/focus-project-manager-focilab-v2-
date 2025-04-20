@@ -4,45 +4,61 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, Trash2 } from "lucide-react";
+import { X, Plus, Trash2, Calendar, ClipboardList, AlignLeft, Sparkles } from "lucide-react";
 import { useTheme } from '../context/ThemeContext';
 import { type Project, type Milestone } from '../hooks/useProjects';
+import { generateProjectMilestones, type MilestoneType } from '../../utils/agents';
+import MilestoneReviewSlide from './MilestoneReviewSlide';
 
 interface ProjectSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   project?: Project;
+  milestones: Milestone[];
   onSave: (projectId: string, updates: Partial<Project>) => void;
   onDelete: (id: string) => void;
+  onAddMilestone: (projectId: string, milestoneData: Omit<Milestone, 'id' | 'projectId'>) => void;
+  onUpdateMilestone: (id: string, milestoneData: Partial<Milestone>) => void;
+  onDeleteMilestone: (id: string) => void;
 }
-
-const generateId = () => Math.random().toString(36).substr(2, 9);
 
 const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
   isOpen,
   onClose,
   project,
+  milestones,
   onSave,
-  onDelete
+  onDelete,
+  onAddMilestone,
+  onUpdateMilestone,
+  onDeleteMilestone
 }) => {
   const { theme } = useTheme();
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const [name, setName] = useState('');
+  const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<Project['status']>('Not Started');
   const [startDate, setStartDate] = useState('');
-  const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [newMilestoneName, setNewMilestoneName] = useState('');
-  const [newMilestoneDate, setNewMilestoneDate] = useState('');
+  const [newMilestoneDueDate, setNewMilestoneDueDate] = useState('');
+  const [showMilestoneForm, setShowMilestoneForm] = useState(false);
+  const [isGeneratingMilestones, setIsGeneratingMilestones] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [showCustomPromptForm, setShowCustomPromptForm] = useState(false);
+  const [showReviewSlide, setShowReviewSlide] = useState(false);
+  const [generatedMilestones, setGeneratedMilestones] = useState<MilestoneType[]>([]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       const isProjectCard = target.closest('.project-card-container');
-      
-      if (sidebarRef.current && 
-          !sidebarRef.current.contains(target) && 
-          !isProjectCard) {
+
+      // Don't close if the review slide is open
+      if (showReviewSlide) return;
+
+      if (sidebarRef.current &&
+        !sidebarRef.current.contains(target) &&
+        !isProjectCard) {
         onClose();
       }
     };
@@ -54,64 +70,143 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, showReviewSlide]);
 
   useEffect(() => {
     if (project) {
-      setName(project.name);
+      setTitle(project.title);
       setDescription(project.description);
       setStatus(project.status);
       setStartDate(project.startDate || '');
-      setMilestones(project.milestones || []);
     }
   }, [project]);
 
-  const handleSave = () => {
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
     if (project) {
       onSave(project.id, {
-        name,
-        description,
-        status,
-        startDate: startDate || undefined,
-        milestones
+        ...project,
+        title: e.target.value
+      });
+    }
+  };
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setDescription(e.target.value);
+    if (project) {
+      onSave(project.id, {
+        ...project,
+        description: e.target.value
+      });
+    }
+  };
+
+  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newStatus = e.target.value as Project['status'];
+    setStatus(newStatus);
+    if (project) {
+      onSave(project.id, {
+        ...project,
+        status: newStatus
+      });
+    }
+  };
+
+  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setStartDate(e.target.value);
+    if (project) {
+      onSave(project.id, {
+        ...project,
+        startDate: e.target.value || undefined
       });
     }
   };
 
   const handleAddMilestone = () => {
     if (newMilestoneName.trim() && project) {
-      const newMilestone: Milestone = {
-        id: generateId(),
+      onAddMilestone(project.id, {
         name: newMilestoneName.trim(),
-        targetDate: newMilestoneDate,
-        completed: false
-      };
-      
-      const updatedMilestones = [...milestones, newMilestone];
-      setMilestones(updatedMilestones);
-      onSave(project.id, { milestones: updatedMilestones });
-      
-      setNewMilestoneName('');
-      setNewMilestoneDate('');
-    }
-  };
+        status: 'Not Started',
+        dueDate: newMilestoneDueDate || new Date().toISOString().split('T')[0]
+      });
 
-  const handleRemoveMilestone = (id: string) => {
-    if (project) {
-      const updatedMilestones = milestones.filter(m => m.id !== id);
-      setMilestones(updatedMilestones);
-      onSave(project.id, { milestones: updatedMilestones });
+      setNewMilestoneName('');
+      setNewMilestoneDueDate('');
+      setShowMilestoneForm(false);
     }
   };
 
   const handleToggleMilestone = (id: string, completed: boolean) => {
-    if (project) {
-      const updatedMilestones = milestones.map(m => 
-        m.id === id ? { ...m, completed } : m
-      );
-      setMilestones(updatedMilestones);
-      onSave(project.id, { milestones: updatedMilestones });
+    const status = completed ? 'Completed' : 'In Progress';
+    onUpdateMilestone(id, { status });
+  };
+
+  const handleGenerateMilestones = async () => {
+    if (!project) return;
+    
+    try {
+      setIsGeneratingMilestones(true);
+      
+      const milestones = await generateProjectMilestones({
+        title: project.title,
+        description: project.description,
+        status: project.status,
+        startDate: project.startDate || '',
+        prompt: customPrompt || undefined
+      });
+      
+      // Store the generated milestones for review
+      setGeneratedMilestones(milestones);
+      
+      // Show the review slide
+      setShowReviewSlide(true);
+      setShowCustomPromptForm(false);
+      setCustomPrompt('');
+    } catch (error) {
+      console.error('Error generating milestones:', error);
+      alert('Failed to generate milestones. Please try again.');
+    } finally {
+      setIsGeneratingMilestones(false);
     }
+  };
+
+  const handleApproveMilestones = (approvedMilestones: Array<Omit<Milestone, 'id' | 'projectId'>>) => {
+    if (!project) return;
+    
+    // Add each approved milestone to the project with a small delay to ensure unique IDs
+    const addMilestonesSequentially = async () => {
+      let addedCount = 0;
+      const createdMilestoneIds: Record<number, string> = {};
+      
+      for (let i = 0; i < approvedMilestones.length; i++) {
+        const milestone = approvedMilestones[i];
+        // Add a small delay to ensure unique timestamps for IDs
+        await new Promise(resolve => setTimeout(resolve, 10));
+        
+        try {
+          // Add the milestone and get its ID
+          const newMilestone = await onAddMilestone(project.id, milestone);
+          if (newMilestone && newMilestone.id) {
+            createdMilestoneIds[i] = newMilestone.id;
+          }
+          addedCount++;
+        } catch (error) {
+          console.error('Error adding milestone:', error);
+        }
+      }
+      
+      // Show success message
+      alert(`Successfully added ${addedCount} milestones to your project!`);
+      
+      // Return the created milestone IDs
+      return createdMilestoneIds;
+    };
+    
+    // Execute the async function
+    addMilestonesSequentially().catch(error => {
+      console.error('Error adding milestones:', error);
+      alert('An error occurred while adding milestones. Please try again.');
+    });
   };
 
   if (!isOpen || !project) return null;
@@ -119,28 +214,30 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
   return (
     <>
       {/* Overlay */}
-      <div 
-        className={` ${
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
+      <div
+        className={` ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
         onClick={onClose}
       />
-      
+
       {/* Sidebar */}
-      <div 
+      <div
         ref={sidebarRef}
-        className={`fixed top-0 right-0 h-full w-[40%] z-50 overflow-y-auto transition-transform duration-300 transform ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        } ${theme === 'dark' ? 'bg-background/95' : 'bg-background'} border-l ${
-          theme === 'dark' ? 'border-white/10' : 'border-gray-200'
-        } shadow-xl backdrop-blur-sm`}
+        className={`fixed top-0 right-0 h-full w-[40%] z-50 overflow-y-auto transition-transform duration-300 transform ${isOpen ? 'translate-x-0' : 'translate-x-full'
+          } ${theme === 'dark' ? 'bg-background/95' : 'bg-background'} border-l ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'
+          } shadow-xl backdrop-blur-sm`}
       >
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold">Edit Project</h2>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Input
+              value={title}
+              onChange={handleTitleChange}
+              className="mt-6 font-semibold bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto w-full text-3xl md:text-2xl"
+              placeholder="Project Name"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={onClose}
               className={`${theme === 'dark' ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
             >
@@ -149,34 +246,30 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
           </div>
 
           <div className="space-y-6">
-            <div className="flex items-center gap-4">
-              <Label htmlFor="name" className="min-w-[100px]">Project Name</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="flex-1 border-0"
-              />
-            </div>
-
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <div className="flex items-center gap-2">
+                <AlignLeft className="h-4 w-4" />
+                <Label htmlFor="description" className="font-normal font-[ui-sans-serif,_-apple-system,_BlinkMacSystemFont,_'Segoe_UI_Variable_Display',_'Segoe_UI',_Helvetica,_'Apple_Color_Emoji',_Arial,_sans-serif,_'Segoe_UI_Emoji',_'Segoe_UI_Symbol']">Description</Label>
+              </div>
               <Textarea
                 id="description"
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={handleDescriptionChange}
                 rows={4}
-                className="resize-none border-0"
+                className="resize-y min-h-[100px] border-0 focus-visible:ring-0 focus-visible:ring-offset-0 font-mono"
               />
             </div>
 
             <div className="flex items-center gap-4">
-              <Label htmlFor="status" className="min-w-[100px]">Status</Label>
+              <div className="flex items-center gap-2 min-w-[100px]">
+                <ClipboardList className="h-4 w-4" />
+                <Label htmlFor="status" className="font-normal font-[ui-sans-serif,_-apple-system,_BlinkMacSystemFont,_'Segoe_UI_Variable_Display',_'Segoe_UI',_Helvetica,_'Apple_Color_Emoji',_Arial,_sans-serif,_'Segoe_UI_Emoji',_'Segoe_UI_Symbol']">Status</Label>
+              </div>
               <select
                 id="status"
                 value={status}
-                onChange={(e) => setStatus(e.target.value as Project['status'])}
-                className="flex-1 p-2 rounded-md border-0"
+                onChange={handleStatusChange}
+                className="flex-1 p-2 rounded-md border-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
               >
                 <option value="Not Started">Not Started</option>
                 <option value="In Progress">In Progress</option>
@@ -185,126 +278,233 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
             </div>
 
             <div className="flex items-center gap-4">
-              <Label htmlFor="startDate" className="min-w-[100px]">Start Date</Label>
-              <div className="flex-1 relative">
+              <div className="flex items-center gap-2 min-w-[100px]">
+                <Calendar className="h-4 w-4" />
+                <Label htmlFor="startDate" className="font-normal font-[ui-sans-serif,_-apple-system,_BlinkMacSystemFont,_'Segoe_UI_Variable_Display',_'Segoe_UI',_Helvetica,_'Apple_Color_Emoji',_Arial,_sans-serif,_'Segoe_UI_Emoji',_'Segoe_UI_Symbol']">Start Date</Label>
+              </div>
+              <div 
+                className="flex-1 relative cursor-pointer border rounded-md overflow-hidden"
+                onClick={(e) => {
+                  const input = document.getElementById('startDate') as HTMLInputElement;
+                  if (input) input.showPicker();
+                }}
+              >
                 <Input
                   id="startDate"
                   type="date"
                   value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full cursor-pointer border-0"
-                  onClick={(e) => {
-                    const input = e.target as HTMLInputElement;
-                    input.showPicker();
-                  }}
+                  onChange={handleStartDateChange}
+                  className="w-full cursor-pointer border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               </div>
             </div>
 
             <div className="space-y-4">
-              <Label>Milestones</Label>
-              <div className="space-y-4">
-                {milestones.map((milestone) => (
-                  <div 
-                    key={milestone.id} 
-                    className={`p-3 rounded-md flex items-start justify-between ${
-                      theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-50'
-                    }`}
+              <div className="flex items-center justify-between">
+                <Label className="text-lg font-medium font-[ui-sans-serif,_-apple-system,_BlinkMacSystemFont,_'Segoe_UI_Variable_Display',_'Segoe_UI',_Helvetica,_'Apple_Color_Emoji',_Arial,_sans-serif,_'Segoe_UI_Emoji',_'Segoe_UI_Symbol']">Milestones</Label>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className={`px-2 py-1 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                    {milestones.length} total
+                  </Badge>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 w-8 p-0 rounded-full"
+                    onClick={() => setShowMilestoneForm(!showMilestoneForm)}
                   >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={milestone.completed}
-                          onChange={(e) => handleToggleMilestone(milestone.id, e.target.checked)}
-                          className="h-4 w-4"
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 p-0 rounded-full flex items-center gap-1 px-2"
+                    onClick={() => setShowCustomPromptForm(!showCustomPromptForm)}
+                    disabled={isGeneratingMilestones}
+                  >
+                    <Sparkles className="h-3 w-3" />
+                    <span className="text-xs">Generate</span>
+                  </Button>
+                </div>
+              </div>
+              
+              {showCustomPromptForm && (
+                <div className="p-4 rounded-md border border-dashed border-gray-300 dark:border-gray-700 mb-4 transition-all duration-300 ease-in-out transform origin-top">
+                  <h4 className="text-sm font-medium mb-2">Generate Milestones with AI</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="customPrompt" className="text-xs font-[ui-sans-serif,_-apple-system,_BlinkMacSystemFont,_'Segoe_UI_Variable_Display',_'Segoe_UI',_Helvetica,_'Apple_Color_Emoji',_Arial,_sans-serif,_'Segoe_UI_Emoji',_'Segoe_UI_Symbol']">Custom Instructions (Optional)</Label>
+                      <Textarea
+                        id="customPrompt"
+                        placeholder="Add any specific instructions for milestone generation..."
+                        value={customPrompt}
+                        onChange={(e) => setCustomPrompt(e.target.value)}
+                        className="mt-1 resize-y min-h-[80px] text-sm"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={handleGenerateMilestones}
+                        disabled={isGeneratingMilestones || !project.title}
+                        className="flex-1"
+                      >
+                        {isGeneratingMilestones ? (
+                          <>
+                            <span className="animate-spin mr-2">⏳</span>
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            Generate Milestones
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowCustomPromptForm(false)}
+                        disabled={isGeneratingMilestones}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {showMilestoneForm && (
+                <div className="p-4 rounded-md border border-dashed border-gray-300 dark:border-gray-700 mb-4 transition-all duration-300 ease-in-out transform origin-top">
+                  <h4 className="text-sm font-medium mb-2">Add New Milestone</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="milestoneName" className="text-xs font-[ui-sans-serif,_-apple-system,_BlinkMacSystemFont,_'Segoe_UI_Variable_Display',_'Segoe_UI',_Helvetica,_'Apple_Color_Emoji',_Arial,_sans-serif,_'Segoe_UI_Emoji',_'Segoe_UI_Symbol']">Name</Label>
+                      <Input
+                        id="milestoneName"
+                        placeholder="Milestone name"
+                        value={newMilestoneName}
+                        onChange={(e) => setNewMilestoneName(e.target.value)}
+                        className="mt-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        autoFocus
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="milestoneDueDate" className="text-xs font-[ui-sans-serif,_-apple-system,_BlinkMacSystemFont,_'Segoe_UI_Variable_Display',_'Segoe_UI',_Helvetica,_'Apple_Color_Emoji',_Arial,_sans-serif,_'Segoe_UI_Emoji',_'Segoe_UI_Symbol']">Due Date</Label>
+                      <div 
+                        className="mt-1 relative cursor-pointer border rounded-md overflow-hidden"
+                        onClick={(e) => {
+                          const input = document.getElementById('milestoneDueDate') as HTMLInputElement;
+                          if (input) input.showPicker();
+                        }}
+                      >
+                        <Input
+                          id="milestoneDueDate"
+                          type="date"
+                          value={newMilestoneDueDate}
+                          onChange={(e) => setNewMilestoneDueDate(e.target.value)}
+                          className="border-0 cursor-pointer focus-visible:ring-0 focus-visible:ring-offset-0"
                         />
-                        <span className={milestone.completed ? 'line-through opacity-70' : ''}>
-                          {milestone.name}
-                        </span>
-                      </div>
-                      <div className="text-xs opacity-70">
-                        Target: {milestone.targetDate || 'No date set'}
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleRemoveMilestone(milestone.id)}
-                      className={`h-6 w-6 ${
-                        theme === 'dark' ? 'hover:bg-red-900/30' : 'hover:bg-red-100'
-                      } text-red-500`}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={handleAddMilestone}
+                        disabled={!newMilestoneName.trim()}
+                        className="flex-1"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Milestone
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowMilestoneForm(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   </div>
-                ))}
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="New milestone"
-                    value={newMilestoneName}
-                    onChange={(e) => setNewMilestoneName(e.target.value)}
-                    className="flex-1 border-0"
-                  />
-                  <Input
-                    type="date"
-                    value={newMilestoneDate}
-                    onChange={(e) => setNewMilestoneDate(e.target.value)}
-                    className="w-40 cursor-pointer border-0"
-                    onClick={(e) => {
-                      const input = e.target as HTMLInputElement;
-                      input.showPicker();
-                    }}
-                  />
                 </div>
-                <Button 
-                  onClick={handleAddMilestone}
-                  disabled={!newMilestoneName.trim()}
-                  className={`w-full ${
-                    theme === 'dark' 
-                      ? 'bg-white/10 hover:bg-white/20 text-white' 
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
-                  }`}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Milestone
-                </Button>
+              )}
+              
+              <div className="space-y-4">
+                {milestones.length === 0 ? (
+                  <div className="text-center py-6 text-sm text-gray-500 dark:text-gray-400">
+                    {showMilestoneForm 
+                      ? "Fill out the form above to add your first milestone." 
+                      : showCustomPromptForm
+                        ? "Use AI to generate milestones based on your project details."
+                        : "No milestones yet. Click the + button to add one or use AI to generate them."}
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                    {milestones.map((milestone) => (
+                      <div
+                        key={milestone.id}
+                        className={`p-3 rounded-md flex items-start justify-between ${
+                          theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-50'
+                        } hover:bg-opacity-80 transition-colors`}
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={milestone.status === 'Completed'}
+                              onChange={(e) => handleToggleMilestone(milestone.id, e.target.checked)}
+                              className="h-4 w-4"
+                            />
+                            <span className={`font-medium ${milestone.status === 'Completed' ? 'line-through opacity-70' : ''}`}>
+                              {milestone.name}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs opacity-70">
+                            <span className="inline-flex items-center">
+                              <Badge variant={milestone.status === 'Completed' ? 'secondary' : 'default'} className="text-[10px] h-4">
+                                {milestone.status}
+                              </Badge>
+                            </span>
+                            <span>•</span>
+                            <span>Due: {milestone.dueDate || 'No date set'}</span>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onDeleteMilestone(milestone.id)}
+                          className={`h-6 w-6 ${theme === 'dark' ? 'hover:bg-red-900/30' : 'hover:bg-red-100'
+                            } text-red-500`}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="flex gap-4 pt-4">
-              <Button 
-                onClick={handleSave}
-                className={`flex-1 ${
-                  theme === 'dark' 
-                    ? 'bg-blue-600 hover:bg-blue-700' 
-                    : 'bg-blue-500 hover:bg-blue-600'
-                } text-white`}
-              >
-                Save Changes
-              </Button>
-              <Button 
+            <div className="flex justify-between pt-4">
+              <Button
+                variant="destructive"
                 onClick={() => {
-                  if (confirm('Are you sure you want to delete this project?')) {
+                  if (window.confirm('Are you sure you want to delete this project?')) {
                     onDelete(project.id);
                     onClose();
                   }
                 }}
-                className={`${
-                  theme === 'dark' 
-                    ? 'bg-red-600 hover:bg-red-700' 
-                    : 'bg-red-500 hover:bg-red-600'
-                } text-white`}
               >
-                Delete
+                Delete Project
               </Button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Milestone Review Slide */}
+      <MilestoneReviewSlide
+        isOpen={showReviewSlide}
+        onClose={() => setShowReviewSlide(false)}
+        projectId={project.id}
+        generatedMilestones={generatedMilestones}
+        onApproveMilestones={handleApproveMilestones}
+      />
     </>
   );
 };

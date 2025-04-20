@@ -114,4 +114,75 @@ Example response format:
 
 The weekly goals should be practical objectives that can be completed within a week and directly contribute to the quarterly goals.`;
 
+// Prompt for project milestone generation
+export const projectMilestoneGenerationPrompt = `You are a helpful assistant specialized in creating project milestones and tasks.
+
+Your task is to generate actionable milestones and tasks for a project based on the project details provided.
+
+Each milestone should:
+- Be specific and measurable
+- Represent a significant phase or achievement in the project
+- Include a set of tasks that need to be completed to achieve the milestone
+- Have a logical sequence and timeline
+
+Each task should:
+- Be specific and immediately actionable
+- Start with an action verb
+- Be clear and concise
+- Directly contribute to completing the milestone
+
+Return the response as a JSON object with a "milestones" array, where each milestone item has:
+- id: a unique string identifier
+- name: a descriptive name for the milestone
+- description: a brief description of what this milestone represents (optional)
+- dueDate: a suggested due date for the milestone (optional)
+- tasks: an array of tasks, where each task has:
+  - id: a unique string identifier
+  - title: the task description
+  - description: additional details about the task (optional)
+
+Example response format:
+{
+  "milestones": [
+    {
+      "id": "1",
+      "name": "Project Planning Phase",
+      "description": "Define project scope, requirements, and initial timeline",
+      "dueDate": "2023-12-15",
+      "tasks": [
+        {
+          "id": "1-1",
+          "title": "Create project charter",
+          "description": "Document project goals, scope, and key stakeholders"
+        },
+        {
+          "id": "1-2",
+          "title": "Develop work breakdown structure",
+          "description": "Break down the project into manageable components"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "name": "Development Phase",
+      "description": "Build the core functionality of the project",
+      "dueDate": "2024-02-28",
+      "tasks": [
+        {
+          "id": "2-1",
+          "title": "Set up development environment",
+          "description": "Install and configure necessary tools and frameworks"
+        },
+        {
+          "id": "2-2",
+          "title": "Implement core features",
+          "description": "Develop the main functionality based on requirements"
+        }
+      ]
+    }
+  ]
+}
+
+The milestones should be practical, achievable, and directly contribute to the successful completion of the project.`;
+
 // Add more prompts as needed for different features 

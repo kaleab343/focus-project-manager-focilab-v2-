@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Nav from '../components/Nav';
 
 interface Todo {
   id: number;
@@ -158,6 +159,7 @@ const DailyPlanner: React.FC = () => {
           </div>
         </div>
       </div>
+      <Nav />
     </div>
   );
 };

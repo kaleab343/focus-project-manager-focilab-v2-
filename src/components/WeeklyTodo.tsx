@@ -1,5 +1,5 @@
 import React, { useState, useEffect, KeyboardEvent, useRef } from 'react';
-import { generateWeeklyGoals } from '../../utils/agets';
+import { generateWeeklyGoals } from '../../utils/agents';
 import { Sparkles } from 'lucide-react';
 
 interface Todo {

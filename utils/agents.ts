@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
-import { todoGenerationPrompt, quarterlyGoalsGenerationPrompt, weeklyGoalsGenerationPrompt } from './prompts';
+import { todoGenerationPrompt, quarterlyGoalsGenerationPrompt, weeklyGoalsGenerationPrompt, projectMilestoneGenerationPrompt } from './prompts';
 import { config, validateConfig } from '../src/config';
 
 export interface TodoItemType {
@@ -14,6 +14,25 @@ export interface GenerateContext {
   yearlyGoals: string[];
   quarterlyGoals: string[];
   weeklyGoals: string[];
+}
+
+// Project milestone and task interfaces
+export interface TaskType {
+  id: string;
+  title: string;
+  description?: string;
+}
+
+export interface MilestoneType {
+  id: string;
+  name: string;
+  description?: string;
+  dueDate?: string;
+  tasks: TaskType[];
+}
+
+export interface ProjectMilestonesResponse {
+  milestones: MilestoneType[];
 }
 
 // Validate environment variables
@@ -50,6 +69,27 @@ export const QuarterlyGoalsResponse = z.object({
 // Wrap the weekly goals list in an object
 export const WeeklyGoalsResponse = z.object({
   goals: z.array(GoalItem)
+});
+
+// Define the Task schema
+export const Task = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string().optional()
+});
+
+// Define the Milestone schema
+export const Milestone = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().optional(),
+  dueDate: z.string().optional(),
+  tasks: z.array(Task)
+});
+
+// Wrap the milestones list in an object
+export const ProjectMilestonesSchema = z.object({
+  milestones: z.array(Milestone)
 });
 
 /**
@@ -183,6 +223,83 @@ Quarterly Goals: ${quarterlyGoals.join(', ')}`
   }
 }
 
+/**
+ * Generates structured project milestones and tasks using OpenAI's completion API
+ * @param {Object} projectInfo - Information about the project
+ * @param {string} projectInfo.title - Project title
+ * @param {string} projectInfo.description - Project description
+ * @param {string} projectInfo.status - Project status
+ * @param {string} [projectInfo.startDate] - Project start date (optional)
+ * @param {string} [projectInfo.prompt] - Custom prompt for milestone generation (optional)
+ * @returns {Promise<MilestoneType[]>} Array of structured milestones with tasks
+ */
+export async function generateProjectMilestones({
+  title = '',
+  description = '',
+  status = '',
+  startDate = '',
+  prompt = ''
+}: {
+  title: string;
+  description: string;
+  status: string;
+  startDate?: string;
+  prompt?: string;
+}): Promise<MilestoneType[]> {
+  try {
+    // Use the predefined prompt or a custom one if provided
+    const systemPrompt = prompt || projectMilestoneGenerationPrompt;
+
+    const completion = await openai.beta.chat.completions.parse({
+      model: "gpt-4o-2024-08-06",
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt
+        },
+        {
+          role: "user",
+          content: `Generate milestones and tasks for the following project:
+Title: ${title}
+Description: ${description}
+Status: ${status}
+Start Date: ${startDate || 'Not specified'}`
+        }
+      ],
+      response_format: zodResponseFormat(ProjectMilestonesSchema, "response"),
+      temperature: 0.7,
+      max_tokens: 1500,
+    });
+
+    if (!completion.choices[0].message.parsed) {
+      return [];
+    }
+
+    // Process the milestones to ensure we're not relying on AI-generated IDs
+    const milestones = completion.choices[0].message.parsed.milestones;
+    
+    // Store the tasks in localStorage for future use
+    try {
+      // For each milestone, store its tasks in localStorage with a key based on the milestone name
+      milestones.forEach((milestone, index) => {
+        if (milestone.tasks && milestone.tasks.length > 0) {
+          const tasksKey = `project_tasks_${title.replace(/\s+/g, '_').toLowerCase()}_milestone_${index}`;
+          localStorage.setItem(tasksKey, JSON.stringify(milestone.tasks));
+        }
+      });
+    } catch (storageError) {
+      console.error('Error storing tasks in localStorage:', storageError);
+      // Continue even if localStorage fails
+    }
+    
+    // Return the milestones but let the application assign IDs
+    return milestones;
+  } catch (error) {
+    console.error('Error generating project milestones:', error);
+    throw error;
+  }
+}
+
 // Helper function to get context from localStorage
 export function getContextFromLocalStorage(): GenerateContext {
   try {
@@ -210,5 +327,8 @@ export const todoSchema = {
   TodoResponse,
   GoalItem,
   QuarterlyGoalsResponse,
-  WeeklyGoalsResponse
+  WeeklyGoalsResponse,
+  Task,
+  Milestone,
+  ProjectMilestonesSchema
 }; 

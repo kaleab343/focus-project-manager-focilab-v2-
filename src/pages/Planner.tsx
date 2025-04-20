@@ -6,6 +6,7 @@ import WeeklyTodo from '../components/WeeklyTodo';
 import Vision from '../components/Vision';
 import YearlyGoals from '../components/YearlyGoals';
 import QuarterlyGoals from '../components/QuarterlyGoals';
+import Nav from '../components/Nav';
 
 interface Todo {
   id: string;
@@ -148,6 +149,7 @@ const Planner: React.FC = () => {
             </div>
           </div>
         </div>
+        <Nav />
       </div>
     </DndProvider>
   );

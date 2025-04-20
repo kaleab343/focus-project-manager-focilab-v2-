@@ -1,16 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import ProjectCard from '../components/ProjectCard';
 import ProjectDialog from '../components/ProjectDialog';
 import ProjectSidebar from '../components/ProjectSidebar';
-import { useProjects, type Project } from '../hooks/useProjects';
+import { useProjects, type Project, type Milestone } from '../hooks/useProjects';
 import { useTheme } from '../context/ThemeContext';
 import Settings from '../components/Settings';
+import { Spinner } from '@/components/ui/spinner';
+import Nav from '../components/Nav';
 
 const Projects: React.FC = () => {
   const { theme } = useTheme();
-  const { projects, addProject, updateProject, deleteProject } = useProjects();
+  const { 
+    projects, 
+    milestones,
+    isLoading, 
+    error,
+    addProject, 
+    updateProject, 
+    deleteProject,
+    addMilestone,
+    updateMilestone,
+    deleteMilestone,
+    getProjectMilestones
+  } = useProjects();
+  
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | undefined>();
   const [dialogMode, setDialogMode] = useState<'add' | 'edit'>('add');
@@ -33,44 +48,60 @@ const Projects: React.FC = () => {
     setIsSidebarOpen(true);
   };
 
-  const handleSave = (projectData: Omit<Project, 'id'>) => {
+  const handleSave = async (projectData: Omit<Project, 'id'>) => {
     if (dialogMode === 'add') {
-      addProject({
-        ...projectData,
-        milestones: projectData.milestones || []
-      });
+      await addProject(projectData);
     } else if (selectedProject) {
-      updateProject(selectedProject.id, projectData);
+      await updateProject(selectedProject.id, projectData);
     }
+    setIsDialogOpen(false);
   };
 
-  const handleMilestoneToggle = (projectId: string, milestoneId: string, completed: boolean) => {
-    const project = projects.find(p => p.id === projectId);
-    if (project) {
-      const updatedMilestones = project.milestones.map(milestone =>
-        milestone.id === milestoneId ? { ...milestone, completed } : milestone
-      );
-      updateProject(projectId, { milestones: updatedMilestones });
-    }
+  const handleMilestoneToggle = async (projectId: string, milestoneId: string, completed: boolean) => {
+    const status = completed ? 'Completed' : 'In Progress';
+    await updateMilestone(milestoneId, { status });
   };
 
-  const handleMilestoneDelete = (projectId: string, milestoneId: string) => {
-    const project = projects.find(p => p.id === projectId);
-    if (project) {
-      const updatedMilestones = project.milestones.filter(
-        milestone => milestone.id !== milestoneId
-      );
-      updateProject(projectId, { milestones: updatedMilestones });
-    }
+  const handleMilestoneDelete = async (projectId: string, milestoneId: string) => {
+    await deleteMilestone(milestoneId);
   };
 
-  const handleStatusChange = (projectId: string, status: Project['status']) => {
-    updateProject(projectId, { status });
+  const handleStatusChange = async (projectId: string, status: Project['status']) => {
+    await updateProject(projectId, { status });
   };
 
-  const handleUpdateProject = (projectId: string, updates: Partial<Project>) => {
-    updateProject(projectId, updates);
+  const handleUpdateProject = async (projectId: string, updates: Partial<Project>) => {
+    await updateProject(projectId, updates);
   };
+
+  const handleAddMilestone = async (projectId: string, milestoneData: Omit<Milestone, 'id' | 'projectId'>) => {
+    return await addMilestone(projectId, milestoneData);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-8 px-4 text-center">
+        <h1 className={`text-2xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Error</h1>
+        <p className={`${theme === 'dark' ? 'text-white/60' : 'text-gray-500'}`}>
+          {error.message}
+        </p>
+        <Button 
+          onClick={() => window.location.reload()} 
+          className="mt-4"
+        >
+          Reload Page
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 px-4 relative min-h-screen">
@@ -88,7 +119,7 @@ const Projects: React.FC = () => {
             <span className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
             <Plus className={`h-4 w-4 mr-2 transition-transform group-hover:scale-110 ${
               theme === 'dark' ? 'text-white' : 'text-gray-900'
-            }`} />
+            } ${isDialogOpen ? 'rotate-45' : ''} transition-all duration-300`} />
             <span className="relative">Add Project</span>
           </Button>
         </div>
@@ -104,23 +135,28 @@ const Projects: React.FC = () => {
             ? 'grid-cols-2' 
             : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
         }`}>
-          {projects.map((project) => (
-            <div 
-              key={project.id} 
-              onClick={() => handleProjectClick(project)}
-              className="project-card-container cursor-pointer transition-all duration-200 hover:scale-[1.01]"
-            >
-              <ProjectCard
-                project={project}
-                onEdit={handleEditClick}
-                onDelete={deleteProject}
-                onMilestoneToggle={handleMilestoneToggle}
-                onMilestoneDelete={handleMilestoneDelete}
-                onStatusChange={handleStatusChange}
-                onUpdateProject={handleUpdateProject}
-              />
-            </div>
-          ))}
+          {projects.map((project) => {
+            const projectMilestones = getProjectMilestones(project.id);
+            return (
+              <div 
+                key={project.id} 
+                onClick={() => handleProjectClick(project)}
+                className="project-card-container cursor-pointer transition-all duration-200 hover:scale-[1.01]"
+              >
+                <ProjectCard
+                  project={project}
+                  milestones={projectMilestones}
+                  onEdit={handleEditClick}
+                  onDelete={deleteProject}
+                  onMilestoneToggle={handleMilestoneToggle}
+                  onMilestoneDelete={handleMilestoneDelete}
+                  onStatusChange={handleStatusChange}
+                  onUpdateProject={handleUpdateProject}
+                  onAddMilestone={handleAddMilestone}
+                />
+              </div>
+            );
+          })}
           {projects.length === 0 && (
             <div className="col-span-full text-center py-12">
               <p className={`${theme === 'dark' ? 'text-white/60' : 'text-gray-500'}`}>
@@ -143,11 +179,16 @@ const Projects: React.FC = () => {
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         project={selectedProject}
+        milestones={selectedProject ? getProjectMilestones(selectedProject.id) : []}
         onSave={handleUpdateProject}
         onDelete={deleteProject}
+        onAddMilestone={handleAddMilestone}
+        onUpdateMilestone={updateMilestone}
+        onDeleteMilestone={deleteMilestone}
       />
       
       <Settings />
+      <Nav />
     </div>
   );
 };
