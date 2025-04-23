@@ -4,7 +4,7 @@ interface ClockProps {
   userName?: string;
 }
 
-const Clock: React.FC<ClockProps> = ({ userName = 'kirubel' }) => {
+export const Clock: React.FC<ClockProps> = ({ userName = 'kirubel' }) => {
   const [time, setTime] = useState<Date>(new Date());
   const [greeting, setGreeting] = useState<string>('');
 
@@ -71,5 +71,3 @@ const Clock: React.FC<ClockProps> = ({ userName = 'kirubel' }) => {
     </div>
   );
 };
-
-export default Clock; 

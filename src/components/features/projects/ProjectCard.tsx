@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2, Flag, CheckCircle2, Plus, X } from "lucide-react";
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '@/context/ThemeContext';
 import {
   Tooltip,
   TooltipContent,
@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { type Milestone, type Project } from '../hooks/useProjects';
+import { type Milestone, type Project } from '@/hooks/useProjects';
 
 interface ProjectCardProps {
   project: Project;
@@ -65,7 +65,7 @@ const formatDate = (dateString?: string) => {
   });
 };
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ 
+export const ProjectCard: React.FC<ProjectCardProps> = ({ 
   project, 
   milestones,
   onEdit, 
@@ -330,5 +330,3 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
     </Card>
   );
 };
-
-export default ProjectCard; 

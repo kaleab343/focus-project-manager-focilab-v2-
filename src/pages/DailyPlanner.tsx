@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Nav from '../components/Nav';
+import {Nav} from '@/components/layout/Nav';
 
 interface Todo {
   id: number;
@@ -7,7 +7,7 @@ interface Todo {
   completed: boolean;
 }
 
-const DailyPlanner: React.FC = () => {
+export const DailyPlanner: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTask, setNewTask] = useState('');
   const currentDate = new Date();
@@ -163,5 +163,3 @@ const DailyPlanner: React.FC = () => {
     </div>
   );
 };
-
-export default DailyPlanner; 

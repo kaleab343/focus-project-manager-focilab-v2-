@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import ProjectCard from '../components/ProjectCard';
-import ProjectDialog from '../components/ProjectDialog';
-import ProjectSidebar from '../components/ProjectSidebar';
+import { ProjectCard } from "@/components/features/projects/ProjectCard";
+import { ProjectDialog } from "@/components/features/projects/ProjectDialog";
+import { ProjectSidebar } from "@/components/features/projects/ProjectSidebar";
 import { useProjects, type Project, type Milestone } from '../hooks/useProjects';
 import { useTheme } from '../context/ThemeContext';
-import Settings from '../components/Settings';
+import { Settings } from "@/components/shared/Settings";
 import { Spinner } from '@/components/ui/spinner';
-import Nav from '../components/Nav';
+import { Nav } from "@/components/layout/Nav";
 
-const Projects: React.FC = () => {
+export const Projects: React.FC = () => {
   const { theme } = useTheme();
   const { 
     projects, 
@@ -75,7 +75,11 @@ const Projects: React.FC = () => {
   };
 
   const handleAddMilestone = async (projectId: string, milestoneData: Omit<Milestone, 'id' | 'projectId'>) => {
-    return await addMilestone(projectId, milestoneData);
+    const milestone = await addMilestone(projectId, milestoneData);
+    if (!milestone) {
+      throw new Error('Failed to add milestone');
+    }
+    return milestone;
   };
 
   if (isLoading) {
@@ -192,5 +196,3 @@ const Projects: React.FC = () => {
     </div>
   );
 };
-
-export default Projects; 

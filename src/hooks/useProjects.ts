@@ -274,4 +274,4 @@ export const useProjects = () => {
     deleteMilestone,
     getProjectMilestones
   };
-}; 
+};

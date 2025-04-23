@@ -1,5 +1,5 @@
 import React, { useState, useEffect, KeyboardEvent, useRef } from 'react';
-import { generateWeeklyGoals } from '../../utils/agents';
+import { generateWeeklyGoals } from '@/utils/agents';
 import { Sparkles } from 'lucide-react';
 
 interface Todo {
@@ -10,7 +10,7 @@ interface Todo {
   weekStartDate?: string;
 }
 
-const WeeklyTodo: React.FC = () => {
+export const WeeklyTodo: React.FC = () => {
   // Get the current week's start and end dates
   const getWeekDates = () => {
     const now = new Date();
@@ -183,7 +183,7 @@ const WeeklyTodo: React.FC = () => {
       
       // Add generated goals to AI suggestions
       if (generatedGoals.length > 0) {
-        const newSuggestions = generatedGoals.map(goal => ({
+        const newSuggestions = generatedGoals.map((goal: { text: string }) => ({
           id: Date.now() + Math.random().toString(36).substring(2, 9),
           text: goal.text,
           completed: false,
@@ -390,5 +390,3 @@ const WeeklyTodo: React.FC = () => {
     </div>
   );
 };
-
-export default WeeklyTodo; 

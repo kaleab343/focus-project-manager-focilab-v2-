@@ -37,4 +37,4 @@ export const useWelcomeModal = () => {
     showWelcomeModal,
     completeWelcomeFlow
   };
-}; 
+};

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const Vision: React.FC = () => {
+export const Vision: React.FC = () => {
   const [visionText, setVisionText] = useState<string>(() => {
     try {
       const storedVision = localStorage.getItem('visionText');
@@ -41,5 +41,3 @@ const Vision: React.FC = () => {
     </div>
   );
 };
-
-export default Vision; 

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { DndProvider, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import DailyTodo, { ItemTypes } from '../components/DailyTodo';
-import WeeklyTodo from '../components/WeeklyTodo';
-import Vision from '../components/Vision';
-import YearlyGoals from '../components/YearlyGoals';
-import QuarterlyGoals from '../components/QuarterlyGoals';
-import Nav from '../components/Nav';
+import { DailyTodo  } from '@/components/features/todo/DailyTodo';
+import { ItemTypes } from '@/components/features/todo/types';
+import { WeeklyTodo } from '@/components/features/todo/WeeklyTodo';
+import {Vision} from '@/components/features/goals/Vision';
+import {YearlyGoals} from '@/components/features/goals/YearlyGoals';
+import {QuarterlyGoals} from '@/components/features/goals/QuarterlyGoals';
+import {Nav} from '@/components/layout/Nav';
 
 interface Todo {
   id: string;
@@ -15,7 +16,7 @@ interface Todo {
   date: string;
 }
 
-const Planner: React.FC = () => {
+export const Planner: React.FC = () => {
   const currentDate = new Date();
   const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
 
@@ -154,5 +155,3 @@ const Planner: React.FC = () => {
     </DndProvider>
   );
 };
-
-export default Planner;

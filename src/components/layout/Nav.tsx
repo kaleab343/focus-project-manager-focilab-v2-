@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '@/context/ThemeContext';
 
-const Nav: React.FC = () => {
+export const Nav: React.FC = () => {
   const location = useLocation();
   const { theme } = useTheme();
   
@@ -51,5 +51,3 @@ const Nav: React.FC = () => {
     </nav>
   );
 };
-
-export default Nav; 

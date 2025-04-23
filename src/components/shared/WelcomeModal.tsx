@@ -10,7 +10,7 @@ export interface UserData {
   yearlyGoal: string;
 }
 
-const WelcomeModal: React.FC<WelcomeModalProps> = ({ onComplete }) => {
+export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onComplete }) => {
   const [step, setStep] = useState<number>(1);
   const [userData, setUserData] = useState<UserData>({
     name: '',
@@ -179,5 +179,3 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({ onComplete }) => {
     </div>
   );
 };
-
-export default WelcomeModal; 

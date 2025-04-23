@@ -5,10 +5,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { X, Check, Trash2, Calendar, Edit, Plus } from "lucide-react";
-import { useTheme } from '../context/ThemeContext';
-import { type Milestone } from '../hooks/useProjects';
-import { type TaskType } from '../../utils/agents';
-import { useTodos } from '../hooks/useTodos';
+import { useTheme } from '@/context/ThemeContext';
+import { type Milestone } from '@/hooks/useProjects';
+import { type TaskType } from '@/utils/agents';
+import { useTodos } from '@/hooks/useTodos';
 
 interface MilestoneReviewSlideProps {
   isOpen: boolean;
@@ -162,12 +162,9 @@ const MilestoneReviewSlide: React.FC<MilestoneReviewSlideProps> = ({
             try {
               // Add the task as a todo
               await addTodo({
-                name: task.title,
+                title: task.title,
                 date: 'Today', // Default to today, can be changed by user later
-                projectId: projectId,
-                milestoneId: createdMilestoneIds[i] || undefined, // Use the milestone ID if available
                 status: 'not-started',
-                isAISuggestion: false
               });
               
               tasksAdded++;
@@ -404,4 +401,4 @@ const MilestoneReviewSlide: React.FC<MilestoneReviewSlideProps> = ({
   );
 };
 
-export default MilestoneReviewSlide; 
+export { MilestoneReviewSlide };

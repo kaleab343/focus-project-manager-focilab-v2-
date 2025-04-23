@@ -1,23 +1,15 @@
 import React from 'react';
-import Clock from '../components/Clock';
-import Settings from '../components/Settings';
-import HomeTodo from '../components/HomeTodo';
-import WeeklyTodo from '../components/WeeklyTodo';
-import Nav from '../components/Nav';
-import { useScore } from '../context/ScoreContext';
+import { Clock } from "@/components/layout/Clock";
+import { Settings } from "@/components/shared/Settings";
+import { HomeTodo } from "@/components/features/todo/HomeTodo";
+import { WeeklyTodo } from "@/components/features/todo/WeeklyTodo";
+import { Nav } from "@/components/layout/Nav";
+import { useMainGoal } from '../context/MainGoalContext';
 import { useTheme } from '../context/ThemeContext';
 
-const Home: React.FC = () => {
-  const { score } = useScore();
+export const Home: React.FC = () => {
+  const { mainGoal } = useMainGoal();
   const { theme } = useTheme();
-
-  // Function to safely display the score regardless of its type
-  const displayScore = () => {
-    if (typeof score === 'number') {
-      return score.toLocaleString();
-    }
-    return String(score);
-  };
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--text-primary)] flex flex-col p-8 ">
@@ -31,7 +23,9 @@ const Home: React.FC = () => {
               filter: theme === 'dark' ? 'brightness(0) invert(1)' : 'none'
             }}
           />
-          <span className="font-bold text-2xl font-['Kanit',_sans-serif] inline-flex items-center">{displayScore()}</span>
+          <span className="font-bold text-2xl font-['Kanit',_sans-serif] inline-flex items-center">
+            {mainGoal || "Set your main goal"}
+          </span>
         </div>
       </div>
 
@@ -58,5 +52,3 @@ const Home: React.FC = () => {
     </div>
   );
 };
-
-export default Home; 

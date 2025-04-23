@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, X } from "lucide-react";
-import { useTheme } from '../context/ThemeContext';
-import { type Project } from '../hooks/useProjects';
+import { useTheme } from '@/context/ThemeContext';
+import { type Project } from '@/hooks/useProjects';
 
 interface ProjectDialogProps {
   open: boolean;
@@ -16,7 +16,7 @@ interface ProjectDialogProps {
   mode: 'add' | 'edit';
 }
 
-const ProjectDialog: React.FC<ProjectDialogProps> = ({
+export const ProjectDialog: React.FC<ProjectDialogProps> = ({
   open,
   onClose,
   onSave,
@@ -121,5 +121,3 @@ const ProjectDialog: React.FC<ProjectDialogProps> = ({
     </Dialog>
   );
 };
-
-export default ProjectDialog; 

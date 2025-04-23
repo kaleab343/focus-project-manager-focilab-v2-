@@ -1,18 +1,12 @@
 import React, { useState, useEffect, KeyboardEvent, useRef } from 'react';
-import { useDrag } from 'react-dnd';
-import { generateTodoList, getContextFromLocalStorage, TodoItemType } from '../../utils/agents';
-import { useTodos, Todo, AISuggestion, standardizeDayAbbreviation } from '../hooks/useTodos';
+import { generateTodoList, getContextFromLocalStorage, TodoItemType } from '@/utils/agents';
+import { useTodos, Todo, AISuggestion, standardizeDayAbbreviation } from '@/hooks/useTodos';
 
-interface DailyTodoProps {
+interface HomeTodoProps {
   selectedDay: string;
 }
 
-// Define the drag item type
-export const ItemTypes = {
-  TODO: 'todo',
-};
-
-const DailyTodo: React.FC<DailyTodoProps> = ({ selectedDay }) => {
+export const HomeTodo: React.FC<HomeTodoProps> = ({ selectedDay }) => {
   const {
     todos,
     aiSuggestions,
@@ -89,7 +83,7 @@ const DailyTodo: React.FC<DailyTodoProps> = ({ selectedDay }) => {
   const handleAddTodo = () => {
     if (newTodoText.trim() !== '') {
       addTodo({
-        name: newTodoText.trim(),
+        title: newTodoText.trim(),
         date: dayAbbrev,
         status: 'not-started'
       });
@@ -106,12 +100,12 @@ const DailyTodo: React.FC<DailyTodoProps> = ({ selectedDay }) => {
 
   const startEditing = (todo: Todo) => {
     setEditingTodoId(todo.id);
-    setEditText(todo.name);
+    setEditText(todo.title);
   };
 
   const saveEdit = () => {
     if (editingTodoId && editText.trim() !== '') {
-      updateTodo(editingTodoId, { name: editText.trim() });
+      updateTodo(editingTodoId, { title: editText.trim() });
       setEditingTodoId(null);
       setEditText('');
     }
@@ -135,16 +129,8 @@ const DailyTodo: React.FC<DailyTodoProps> = ({ selectedDay }) => {
     }
   };
 
-  // Component for a draggable todo item
-  const DraggableTodoItem: React.FC<{ todo: Todo }> = ({ todo }) => {
-    const [{ isDragging }, dragRef] = useDrag({
-      type: ItemTypes.TODO,
-      item: todo,
-      collect: (monitor) => ({
-        isDragging: !!monitor.isDragging(),
-      }),
-    });
-
+  // Component for a todo item without drag functionality
+  const TodoItem: React.FC<{ todo: Todo }> = ({ todo }) => {
     return (
       <div className="flex items-center mb-2 relative group">
         <input
@@ -160,10 +146,9 @@ const DailyTodo: React.FC<DailyTodoProps> = ({ selectedDay }) => {
             className="inline-flex items-center cursor-pointer break-words text-lg"
           >
             <span 
-              ref={dragRef as any}
               className={`inline-block ${
                 todo.status === 'completed' ? 'line-through text-white/50' : ''
-              } ${isDragging ? 'opacity-50' : 'opacity-100'}`}
+              }`}
               style={{ cursor: 'text' }}
               onDoubleClick={(e) => {
                 e.preventDefault();
@@ -172,7 +157,7 @@ const DailyTodo: React.FC<DailyTodoProps> = ({ selectedDay }) => {
                 }
               }}
             >
-              {todo.name}
+              {todo.title}
             </span>
           </label>
           <button 
@@ -265,7 +250,7 @@ const DailyTodo: React.FC<DailyTodoProps> = ({ selectedDay }) => {
               <div className="text-white/60 text-sm">No todos for this day</div>
             ) : (
               filteredTodos.map(todo => (
-                <DraggableTodoItem key={todo.id} todo={todo} />
+                <TodoItem key={todo.id} todo={todo} />
               ))
             )}
           </div>
@@ -313,5 +298,3 @@ const DailyTodo: React.FC<DailyTodoProps> = ({ selectedDay }) => {
     </div>
   );
 };
-
-export default DailyTodo; 

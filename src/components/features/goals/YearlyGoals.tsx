@@ -7,7 +7,7 @@ interface Goal {
 }
 
 // Year Progress component to show current year and progress bar
-const YearProgress: React.FC = () => {
+export const YearProgress: React.FC = () => {
   const [yearProgress, setYearProgress] = useState(0);
   const currentYear = new Date().getFullYear();
   
@@ -41,7 +41,7 @@ const YearProgress: React.FC = () => {
   );
 };
 
-const YearlyGoals: React.FC = () => {
+export const YearlyGoals: React.FC = () => {
   const [goals, setGoals] = useState<Goal[]>(() => {
     try {
       const storedGoals = localStorage.getItem('yearlyGoals');
@@ -237,5 +237,3 @@ const YearlyGoals: React.FC = () => {
     </div>
   );
 };
-
-export default YearlyGoals; 

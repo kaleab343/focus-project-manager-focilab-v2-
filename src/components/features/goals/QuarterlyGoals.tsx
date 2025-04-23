@@ -1,5 +1,5 @@
 import React, { useState, useEffect, KeyboardEvent, useRef } from 'react';
-import { generateQuarterlyGoals } from '../../utils/agents';
+import { generateQuarterlyGoals } from '@/utils/agents';
 import { Sparkles } from 'lucide-react';
 
 interface Goal {
@@ -9,7 +9,7 @@ interface Goal {
   quarter: number;
 }
 
-const QuarterlyGoals: React.FC = () => {
+export const QuarterlyGoals: React.FC = () => {
   // Get current quarter (1-4)
   const getCurrentQuarter = () => {
     const month = new Date().getMonth();
@@ -278,5 +278,3 @@ const QuarterlyGoals: React.FC = () => {
     </div>
   );
 };
-
-export default QuarterlyGoals; 

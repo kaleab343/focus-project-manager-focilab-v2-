@@ -1,34 +1,29 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Settings2, X, Sun, Moon, RefreshCw } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext';
-import { useScore } from '../context/ScoreContext';
+import { useTheme } from '@/context/ThemeContext';
+import { useMainGoal } from '@/context/MainGoalContext';
 
 interface SettingsProps {
   // Add any props if needed
 }
 
-const Settings: React.FC<SettingsProps> = () => {
+export const Settings: React.FC<SettingsProps> = () => {
   const [isOpen, setIsOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const { theme, toggleTheme } = useTheme();
-  const { score, setScore } = useScore();
-  const [tempScore, setTempScore] = useState(String(score));
+  const { mainGoal, setMainGoal } = useMainGoal();
+  const [tempGoal, setTempGoal] = useState(String(mainGoal));
   const [resetConfirm, setResetConfirm] = useState(false);
 
   useEffect(() => {
-    setTempScore(String(score));
-  }, [score]);
+    setTempGoal(String(mainGoal));
+  }, [mainGoal]);
 
-  const handleScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Allow any input value
+  const handleGoalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    setTempScore(newValue);
-    
-    // Update score immediately on every change
-    // Try to parse as number if it looks like a number, otherwise keep as string
-    const newScore = /^\d+$/.test(newValue) ? parseInt(newValue) : newValue;
-    setScore(newScore);
+    setTempGoal(newValue);
+    setMainGoal(newValue);
   };
 
   const resetWelcomeFlow = () => {
@@ -129,11 +124,11 @@ const Settings: React.FC<SettingsProps> = () => {
             </div>
 
             <div className="flex items-center justify-between">
-              <span style={{ color: 'var(--text-secondary)' }}>Score</span>
+              <span style={{ color: 'var(--text-secondary)' }}>Main Goal</span>
               <input
                 type="text"
-                value={tempScore}
-                onChange={handleScoreChange}
+                value={tempGoal}
+                onChange={handleGoalChange}
                 className="flex-1 ml-4 px-2 py-1 rounded"
                 style={{
                   backgroundColor: 'var(--input-bg)',
@@ -170,5 +165,3 @@ const Settings: React.FC<SettingsProps> = () => {
     </div>
   );
 };
-
-export default Settings; 

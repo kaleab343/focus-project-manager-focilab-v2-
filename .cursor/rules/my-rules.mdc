@@ -1,6 +1,7 @@
 ---
 description: stying rules
 globs: 
+alwaysApply: false
 ---
 
 # Your rule content
@@ -11,3 +12,171 @@ use lucide fonts
 
 all icons should be black or white depending on the active theme 
 the project will be a chrome extension eventaully so consider that 
+# TypeScript, React, and UI Development Standards
+
+## Code Style and Structure
+
+### Component Organization
+- Components should follow this structure:
+  1. Exported component
+  2. Subcomponents
+  3. Helper functions
+  4. Static content
+  5. TypeScript interfaces/types
+  6. Alias Import only
+
+### TypeScript Best Practices
+```typescript
+// ✅ Preferred interface usage
+interface UserProps {
+  name: string;
+  isActive: boolean;
+}
+
+// ❌ Avoid enums, use const maps
+const UserRole = {
+  ADMIN: 'ADMIN',
+  USER: 'USER',
+} as const;
+
+// ✅ Functional component with TypeScript
+function UserProfile({ name, isActive }: UserProps) {
+  return (
+    <div>
+      <h1>{name}</h1>
+      <span>{isActive ? 'Active' : 'Inactive'}</span>
+    </div>
+  );
+}
+```
+
+### Naming Conventions
+- Directory naming: lowercase with dashes (e.g., `auth-wizard`, `user-profile`)
+- Component naming: PascalCase (e.g., `UserProfile.tsx`, `AuthWizard.tsx`)
+- Variable naming: camelCase with auxiliary verbs
+  ```typescript
+  const isLoading = true;
+  const hasError = false;
+  const shouldRefetch = true;
+  ```
+
+### File Structure
+```typescript
+// imports
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+
+// types/interfaces
+interface Props {
+  // ...
+}
+
+// component
+export function Component(props: Props) {
+  // ...
+}
+
+// helper functions
+function helperFunction() {
+  // ...
+}
+```
+
+## UI and Styling Guidelines
+
+### Shadcn UI and Radix Usage
+```typescript
+// ✅ Proper Shadcn UI component usage
+import { Button } from "@/components/ui/button"
+import { Dialog } from "@/components/ui/dialog"
+
+// ✅ Composition with Radix primitives
+import * as RadioGroup from '@radix-ui/react-radio-group';
+```
+
+### Tailwind Best Practices
+- Use semantic class ordering:
+  1. Layout (flex, grid)
+  2. Spacing (padding, margin)
+  3. Sizing (width, height)
+  4. Typography
+  5. Colors
+  6. Other styles
+
+```tsx
+// ✅ Well-organized Tailwind classes
+<div className="
+  flex items-center justify-between  // Layout
+  p-4 my-2                          // Spacing
+  w-full h-16                       // Sizing
+  text-lg font-medium              // Typography
+  bg-slate-100 text-slate-900     // Colors
+  rounded-lg shadow-sm            // Other
+">
+```
+
+## Performance Optimization
+
+### Server Components
+- Default to React Server Components
+- Only use 'use client' when necessary:
+```typescript
+// ✅ Client Component when needed
+'use client';
+
+import { useState } from 'react';
+
+export function InteractiveComponent() {
+  const [state, setState] = useState(false);
+  // ...
+}
+```
+
+### Dynamic Loading
+```typescript
+// ✅ Dynamic imports for optimal loading
+import dynamic from 'next/dynamic';
+
+const HeavyComponent = dynamic(() => import('./HeavyComponent'), {
+  loading: () => <LoadingSpinner />,
+  ssr: false
+});
+```
+
+### Image Optimization
+```typescript
+// ✅ Optimized image usage
+import Image from 'next/image';
+
+export function OptimizedImage() {
+  return (
+    <Image
+      src="/image.webp"
+      alt="Description"
+      width={800}
+      height={600}
+      loading="lazy"
+      className="object-cover"
+    />
+  );
+}
+```
+
+## Anti-patterns to Avoid
+
+❌ Don't:
+- Use class components
+- Implement unnecessary state management
+- Write redundant code
+- Use inline styles
+- Create deeply nested components
+- Use `any` type
+- Leave console.logs in production code
+
+✅ Do:
+- Write pure functions
+- Use TypeScript strictly
+- Implement proper error boundaries
+- Follow the single responsibility principle
+- Use proper type annotations
+- Implement proper loading states 

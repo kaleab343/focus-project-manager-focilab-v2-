@@ -5,10 +5,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { X, Plus, Trash2, Calendar, ClipboardList, AlignLeft, Sparkles } from "lucide-react";
-import { useTheme } from '../context/ThemeContext';
-import { type Project, type Milestone } from '../hooks/useProjects';
-import { generateProjectMilestones, type MilestoneType } from '../../utils/agents';
-import MilestoneReviewSlide from './MilestoneReviewSlide';
+import { useTheme } from '@/context/ThemeContext';
+import { type Project, type Milestone } from '@/hooks/useProjects';
+import { generateProjectMilestones, type MilestoneType } from "@/utils/agents";
+import { MilestoneReviewSlide } from '@/components/MilestoneReviewSlide';
 
 interface ProjectSidebarProps {
   isOpen: boolean;
@@ -17,12 +17,12 @@ interface ProjectSidebarProps {
   milestones: Milestone[];
   onSave: (projectId: string, updates: Partial<Project>) => void;
   onDelete: (id: string) => void;
-  onAddMilestone: (projectId: string, milestoneData: Omit<Milestone, 'id' | 'projectId'>) => void;
+  onAddMilestone: (projectId: string, milestoneData: Omit<Milestone, 'id' | 'projectId'>) => Promise<Milestone>;
   onUpdateMilestone: (id: string, milestoneData: Partial<Milestone>) => void;
   onDeleteMilestone: (id: string) => void;
 }
 
-const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
+export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
   isOpen,
   onClose,
   project,
@@ -186,9 +186,7 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
         try {
           // Add the milestone and get its ID
           const newMilestone = await onAddMilestone(project.id, milestone);
-          if (newMilestone && newMilestone.id) {
-            createdMilestoneIds[i] = newMilestone.id;
-          }
+          createdMilestoneIds[i] = newMilestone.id;
           addedCount++;
         } catch (error) {
           console.error('Error adding milestone:', error);
@@ -508,5 +506,3 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
     </>
   );
 };
-
-export default ProjectSidebar; 

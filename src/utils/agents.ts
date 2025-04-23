@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 import { todoGenerationPrompt, quarterlyGoalsGenerationPrompt, weeklyGoalsGenerationPrompt, projectMilestoneGenerationPrompt } from './prompts';
-import { config, validateConfig } from '../src/config';
+import { config, validateConfig } from '@/config';
 
 export interface TodoItemType {
   id: string;
