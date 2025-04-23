@@ -105,7 +105,7 @@ export async function generateTodoList(context: GenerateContext = {
 }): Promise<TodoItemType[]> {
   try {
     const completion = await openai.beta.chat.completions.parse({
-      model: "gpt-4o-2024-08-06",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -149,7 +149,7 @@ export async function generateQuarterlyGoals({
 }: Pick<GenerateContext, 'vision' | 'yearlyGoals'>): Promise<{id: string, text: string}[]> {
   try {
     const completion = await openai.beta.chat.completions.parse({
-      model: "gpt-4o-2024-08-06",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -193,7 +193,7 @@ export async function generateWeeklyGoals({
 }: Pick<GenerateContext, 'vision' | 'yearlyGoals' | 'quarterlyGoals'>): Promise<{id: string, text: string}[]> {
   try {
     const completion = await openai.beta.chat.completions.parse({
-      model: "gpt-4o-2024-08-06",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -251,7 +251,7 @@ export async function generateProjectMilestones({
     const systemPrompt = prompt || projectMilestoneGenerationPrompt;
 
     const completion = await openai.beta.chat.completions.parse({
-      model: "gpt-4o-2024-08-06",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
