@@ -1,0 +1,106 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Minimal Design Component (MDC) Manual  
+### For: [Your App Name] - Personal/Project Manager  
+### Purpose: Guide UI implementation with minimalist, modern design and consistent user experience principles.
+
+---
+
+##  Design Philosophy
+
+- **Minimalist First**: Use whitespace strategically. Avoid unnecessary embellishments.
+- **Modern Look**: Leverage modern UI libraries Tailwind, ShadCN, Radix and design language.
+- **Focus on UX**: All actions should feel smooth, fast, and intuitive.
+- **Async Ready**: Every component that involves async operations **must** handle loading, error, and empty states.
+
+---
+
+##  UI Component Expectations
+
+### General Guidelines
+- Use **modular components**: one component = one responsibility.
+- All **async components must include**:
+  - Loading placeholders/skeletons
+  - Fallback content for errors
+  - Empty states with helpful messaging
+
+### Visual Language
+- Neutral color palette (grays, whites, black) with 1–2 accent colors max.
+- Rounded corners (`2xl` or more).
+- Subtle shadows (`shadow-md`, no harsh contrasts).
+- Smooth animations/transitions using `framer-motion` or CSS.
+
+### Layout and Spacing
+- Consistent padding/margin (`p-4`, `gap-4`, etc.).
+- Responsive by default (mobile-first design).
+- Use **grid/flex layouts** smartly to keep UI uncluttered.
+
+---
+
+##  Loading, Placeholder, and Empty States
+
+### Always Include:
+- **Skeleton loaders** for lists, forms, detail pages.
+- **Spinners or progress bars** for interactions (form submit, API fetch).
+- **Placeholders** when no data is available, e.g., "No projects yet. Create your first one!"
+- **Error boundaries** to catch and gracefully display async failures.
+
+```tsx
+// Example: Async Component with Loading and Empty State
+{isLoading ? (
+  <SkeletonCard />
+) : error ? (
+  <ErrorMessage retry={refetch} />
+) : data?.length === 0 ? (
+  <EmptyState message="No tasks found" />
+) : (
+  <TaskList items={data} />
+)}
+```
+
+---
+
+## ⚙️ Development Best Practices
+
+- **Component-driven** with Storybook or similar (optional but encouraged).
+- Use **React functional components** only.
+- Prefer **TailwindCSS** + **Framer Motion** for style and animation.
+- Include **test IDs** for E2E/UI testing.
+- **Avoid inline styles** unless absolutely necessary.
+
+---
+
+## 🛡️ Accessibility & Performance
+
+- Use ARIA roles and labels as needed.
+- All interactive elements must be keyboard navigable.
+- Optimize for mobile & low-performance devices.
+- Minimize re-renders; memoize when appropriate.
+
+---
+
+## 🔄 Versioning & Iteration
+
+- All UI components should be version-controlled in a `ui/` folder.
+- Components should be reusable and documented.
+- Include changelogs for major UI updates.
+- Conduct regular design reviews to ensure consistency.
+
+---
+
+## ✅ Final Checklist per Component
+
+| Criteria                   | Required? |
+|---------------------------|-----------|
+| Mobile responsive         | ✅        |
+| Async-safe (loading/etc) | ✅        |
+| Minimalist aesthetic      | ✅        |
+| Error/empty states        | ✅        |
+| Accessible                | ✅        |
+| Animations (where needed)| ✅        |
+| Reusable/modular          | ✅        |
+| Testable                  | ✅        |
+
