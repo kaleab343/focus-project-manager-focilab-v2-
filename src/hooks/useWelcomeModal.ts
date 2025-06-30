@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UserData } from '../components/WelcomeModal';
+import { UserData } from '../components/shared/WelcomeModal';
 
 export const useWelcomeModal = () => {
   const [showWelcomeModal, setShowWelcomeModal] = useState<boolean>(false);

@@ -13,12 +13,13 @@ export interface AISuggestionItemProps {
     text: string;
   };
   onUpdate: (id: string, text: string) => void;
-  onApprove: (id: string, day: string) => void;
+  onApprove: (id: string, day: string, projectId?: string) => void;
   onDelete: (id: string) => void;
 }
 
 export interface DailyTodoProps {
   selectedDay: string;
+  project?: import('@/hooks/useProjects').Project;
 }
 
 export const ItemTypes = {

@@ -4,9 +4,18 @@ interface ClockProps {
   userName?: string;
 }
 
-export const Clock: React.FC<ClockProps> = ({ userName = 'kirubel' }) => {
+export const Clock: React.FC<ClockProps> = ({ userName }) => {
   const [time, setTime] = useState<Date>(new Date());
   const [greeting, setGreeting] = useState<string>('');
+  const [userNameFromStorage, setUserNameFromStorage] = useState<string>('');
+
+  useEffect(() => {
+    // Get user name from localStorage
+    const storedUserName = localStorage.getItem('userName');
+    if (storedUserName) {
+      setUserNameFromStorage(storedUserName);
+    }
+  }, []);
 
   useEffect(() => {
     // Update time every second
@@ -58,7 +67,7 @@ export const Clock: React.FC<ClockProps> = ({ userName = 'kirubel' }) => {
       left: '50%',
       transform: 'translate(-50%, -50%)'
     }}>
-      <h2 className="text-[1.3rem] font-light">{`${greeting}, ${userName}`}</h2>
+      <h2 className="text-[1.3rem] font-light">{`${greeting}, ${userName || userNameFromStorage || 'there'}`}</h2>
       <div className="font-['Kanit',sans-serif] flex items-end justify-center">
         
         <span className="text-[7rem] font-light leading-none mr-2">{timeData.hours}:{timeData.minutes}</span>

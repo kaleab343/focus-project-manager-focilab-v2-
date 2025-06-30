@@ -42,61 +42,39 @@ The todos should be practical steps that can be completed today to move closer t
 // Prompt for quarterly goals generation
 export const quarterlyGoalsGenerationPrompt = `You are a helpful assistant specialized in creating quarterly goals that align with the user's vision and yearly goals.
 
-Your task is to generate exactly 4 actionable quarterly goals that will help the user progress towards their yearly goals while staying aligned with their vision.
+Your task is to generate actionable quarterly goals that will help the user progress towards their yearly goals while staying aligned with their vision.
 
 Each quarterly goal should:
-- Be extremely concise (3-4 words maximum)
-- Be specific and actionable
+- Be specific and measurable
 - Be achievable within a quarter (3 months)
 - Directly contribute to one or more of the user's yearly goals
+- Be clear and concise
 - Represent a significant milestone towards the yearly goals
-- Be part of a logical progression (step 1 builds to step 2, etc.)
-
-Consider the quarterly context:
-- Q1 (January-March): Foundation and planning phase
-- Q2 (April-June): Building momentum and execution
-- Q3 (July-September): Mid-year review and adjustment
-- Q4 (October-December): Completion and preparation for next year
-
-Each goal should be numbered as a step (1-4) and follow a logical sequence:
-- Step 1: Foundation/Preparation
-- Step 2: Development/Implementation  
-- Step 3: Progress/Refinement
-- Step 4: Completion/Next Steps
 
 Consider:
 - The user's overall vision to maintain strategic alignment
 - Yearly goals to ensure proper breakdown into quarterly milestones
 - Balance between different areas of focus from the yearly goals
-- The specific quarter context if provided
 
 Return the response as a JSON object with a "goals" array, where each goal item in the array has:
 - id: a unique string identifier
-- text: the goal description (3-4 words maximum, prefixed with "Step X: ")
+- text: the goal description
 
 Example response format:
 {
   "goals": [
     {
       "id": "1",
-      "text": "Step 1: Research market"
+      "text": "Complete the first draft of chapters 1-3 of the book"
     },
     {
-      "id": "2", 
-      "text": "Step 2: Build prototype"
-    },
-    {
-      "id": "3",
-      "text": "Step 3: Test feedback"
-    },
-    {
-      "id": "4",
-      "text": "Step 4: Launch product"
+      "id": "2",
+      "text": "Increase website traffic by 20% through content marketing"
     }
   ]
 }
 
-The quarterly goals should be extremely concise (3-4 words) and represent a complete 4-step progression that can be achieved in a 3-month period and directly contribute to the yearly goals.`;
+The quarterly goals should represent meaningful progress that can be achieved in a 3-month period and directly contribute to the yearly goals.`;
 
 // Prompt for weekly goals generation
 export const weeklyGoalsGenerationPrompt = `You are a helpful assistant specialized in creating weekly goals that align with the user's vision, yearly goals, and quarterly goals.

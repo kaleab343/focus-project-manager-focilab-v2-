@@ -19,6 +19,8 @@ export const standardizeDayAbbreviation = (day: string): string => {
 export interface Todo extends TodoItemType {
   status: 'not-started' | 'in-progress' | 'completed';
   date: string;
+  projectId?: string;
+  isSelected?: boolean;
 }
 
 // Simple AI suggestion interface
@@ -29,7 +31,7 @@ export interface AISuggestion {
 
 // Database configuration
 const DB_NAME = 'focilab-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const TODOS_STORE = 'todos';
 const AI_SUGGESTIONS_STORAGE_KEY = 'focilab-ai-suggestions';
 const HAS_GENERATED_AI_KEY = 'focilab-has-generated-ai';
@@ -99,9 +101,9 @@ const markAIGenerated = (): void => {
 // Hook for managing todos
 export const useTodos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [aiSuggestions, setAISuggestions] = useState<AISuggestion[]>([]);
+  const [aiSuggestions, setAISuggestions] = useState<AISuggestion[]>(() => loadAiSuggestionsFromStorage());
   const [loading, setLoading] = useState(false);
-  const [hasGenerated, setHasGenerated] = useState(false);
+  const [hasGenerated, setHasGenerated] = useState(() => hasGeneratedAI());
 
   // Save AI suggestions to localStorage whenever they change
   useEffect(() => {
@@ -149,14 +151,28 @@ export const useTodos = () => {
   }, []);
 
   // Add a new todo
-  const addTodo = useCallback((todo: Omit<Todo, 'id'>) => {
+  const addTodo = useCallback(async (todo: Omit<Todo, 'id'>) => {
     const newTodo: Todo = {
       id: Math.random().toString(36).substr(2, 9),
       title: todo.title,
       status: todo.status,
-      date: todo.date
+      date: todo.date,
+      projectId: todo.projectId,
+      isSelected: todo.isSelected || false
     };
     setTodos(prev => [...prev, newTodo]);
+    // Persist to IndexedDB
+    try {
+      const db = await initDB();
+      const transaction = db.transaction(TODOS_STORE, 'readwrite');
+      const store = transaction.objectStore(TODOS_STORE);
+      store.add(newTodo);
+      transaction.oncomplete = () => {
+        db.close();
+      };
+    } catch (err) {
+      console.error('Error saving todo to IndexedDB:', err);
+    }
   }, []);
 
   // Add AI suggestions
@@ -165,15 +181,42 @@ export const useTodos = () => {
       id: Math.random().toString(36).substr(2, 9),
       text
     }));
-    setAISuggestions(prev => [...prev, ...newSuggestions]);
+    
+    // Limit to maximum 2 suggestions and replace existing ones
+    const limitedSuggestions = newSuggestions.slice(0, 2);
+    
+    setAISuggestions(limitedSuggestions);
     setHasGenerated(true);
   }, []);
 
   // Update an existing todo
-  const updateTodo = useCallback((id: string, updates: Partial<Todo>) => {
+  const updateTodo = useCallback(async (id: string, updates: Partial<Todo>) => {
     setTodos(prev => prev.map(todo => 
       todo.id === id ? { ...todo, ...updates } : todo
     ));
+    
+    // Persist to IndexedDB
+    try {
+      const db = await initDB();
+      const transaction = db.transaction(TODOS_STORE, 'readwrite');
+      const store = transaction.objectStore(TODOS_STORE);
+      
+      // Get the current todo
+      const getRequest = store.get(id);
+      getRequest.onsuccess = () => {
+        const currentTodo = getRequest.result;
+        if (currentTodo) {
+          const updatedTodo = { ...currentTodo, ...updates };
+          store.put(updatedTodo);
+        }
+      };
+      
+      transaction.oncomplete = () => {
+        db.close();
+      };
+    } catch (err) {
+      console.error('Error updating todo in IndexedDB:', err);
+    }
   }, []);
 
   // Update an AI suggestion
@@ -184,8 +227,21 @@ export const useTodos = () => {
   }, []);
 
   // Delete a todo
-  const deleteTodo = useCallback((id: string) => {
+  const deleteTodo = useCallback(async (id: string) => {
     setTodos(prev => prev.filter(todo => todo.id !== id));
+    
+    // Persist to IndexedDB
+    try {
+      const db = await initDB();
+      const transaction = db.transaction(TODOS_STORE, 'readwrite');
+      const store = transaction.objectStore(TODOS_STORE);
+      store.delete(id);
+      transaction.oncomplete = () => {
+        db.close();
+      };
+    } catch (err) {
+      console.error('Error deleting todo from IndexedDB:', err);
+    }
   }, []);
 
   // Delete an AI suggestion
@@ -194,21 +250,22 @@ export const useTodos = () => {
   }, []);
 
   // Approve an AI suggestion (convert to regular todo)
-  const approveAiSuggestion = useCallback((id: string, day: string) => {
+  const approveAiSuggestion = useCallback((id: string, day: string, projectId?: string) => {
     const suggestion = aiSuggestions.find(s => s.id === id);
     if (suggestion) {
       addTodo({
         title: suggestion.text,
         date: day,
-        status: 'not-started'
+        status: 'not-started',
+        projectId
       });
       deleteAISuggestion(id);
     }
   }, [aiSuggestions, addTodo, deleteAISuggestion]);
 
-  // Get todos for a specific day
-  const getTodosByDay = useCallback((day: string) => {
-    return todos.filter(todo => todo.date === day);
+  // Get todos for a specific day and project
+  const getTodosByDay = useCallback((day: string, projectId?: string) => {
+    return todos.filter(todo => todo.date === day && (!projectId || todo.projectId === projectId));
   }, [todos]);
 
   // Check if AI suggestions have been generated
@@ -219,7 +276,44 @@ export const useTodos = () => {
   // Clear all AI suggestions
   const clearAISuggestions = useCallback(() => {
     setAISuggestions([]);
+    setHasGenerated(false);
+    localStorage.removeItem(HAS_GENERATED_AI_KEY);
   }, []);
+
+  // Toggle selected state of a todo
+  const toggleSelectedTodo = useCallback(async (id: string) => {
+    setTodos(prev => prev.map(todo => 
+      todo.id === id ? { ...todo, isSelected: !todo.isSelected } : todo
+    ));
+    
+    // Persist to IndexedDB
+    try {
+      const db = await initDB();
+      const transaction = db.transaction(TODOS_STORE, 'readwrite');
+      const store = transaction.objectStore(TODOS_STORE);
+      
+      // Get the current todo
+      const getRequest = store.get(id);
+      getRequest.onsuccess = () => {
+        const currentTodo = getRequest.result;
+        if (currentTodo) {
+          const updatedTodo = { ...currentTodo, isSelected: !currentTodo.isSelected };
+          store.put(updatedTodo);
+        }
+      };
+      
+      transaction.oncomplete = () => {
+        db.close();
+      };
+    } catch (err) {
+      console.error('Error updating selected state in IndexedDB:', err);
+    }
+  }, []);
+
+  // Get selected todos (regardless of date)
+  const getSelectedTodos = useCallback(() => {
+    return todos.filter(todo => todo.isSelected);
+  }, [todos]);
 
   // Load todos on initial render
   useEffect(() => {
@@ -241,6 +335,8 @@ export const useTodos = () => {
     hasAISuggestions,
     hasGenerated,
     clearAISuggestions,
+    toggleSelectedTodo,
+    getSelectedTodos,
     loadTodos
   };
 };

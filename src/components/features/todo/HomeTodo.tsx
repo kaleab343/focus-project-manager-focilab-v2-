@@ -1,14 +1,15 @@
 import React, { useState, useEffect, KeyboardEvent, useRef } from 'react';
-import { generateTodoList, getContextFromLocalStorage, TodoItemType } from '@/utils/agents';
+import { generateTodoList, getContextFromLocalStorage } from '@/utils/agents';
 import { useTodos, Todo, AISuggestion, standardizeDayAbbreviation } from '@/hooks/useTodos';
+import { useProjectContext } from '@/context/ProjectContext';
 
 interface HomeTodoProps {
   selectedDay: string;
 }
 
 export const HomeTodo: React.FC<HomeTodoProps> = ({ selectedDay }) => {
+  const { hideSelectedTodos } = useProjectContext();
   const {
-    todos,
     aiSuggestions,
     loading,
     addTodo,
@@ -19,6 +20,7 @@ export const HomeTodo: React.FC<HomeTodoProps> = ({ selectedDay }) => {
     deleteAISuggestion,
     approveAiSuggestion,
     getTodosByDay,
+    getSelectedTodos,
     hasAISuggestions,
     hasGenerated,
     clearAISuggestions
@@ -34,14 +36,27 @@ export const HomeTodo: React.FC<HomeTodoProps> = ({ selectedDay }) => {
   // Get the standardized day abbreviation
   const dayAbbrev = standardizeDayAbbreviation(selectedDay);
 
-  // Get todos for the selected day
-  const todosForDay = getTodosByDay(dayAbbrev);
+  // Get todos for the selected day - show only selected tasks for "Today"
+  const todosForDay = selectedDay === "Today" ? getSelectedTodos() : getTodosByDay(dayAbbrev);
   
   // Combine regular todos and AI suggestions for display
   const filteredTodos = todosForDay;
 
   const fullWeekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const fullDayName = selectedDay === "Today" ? "Today" : fullWeekDays[fullWeekDays.findIndex(day => day.startsWith(selectedDay))];
+
+  // Listen for project changes and hide selected todos
+  useEffect(() => {
+    const handleProjectChange = () => {
+      hideSelectedTodos();
+    };
+
+    window.addEventListener('projectChanged', handleProjectChange);
+    
+    return () => {
+      window.removeEventListener('projectChanged', handleProjectChange);
+    };
+  }, [hideSelectedTodos]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -64,6 +79,10 @@ export const HomeTodo: React.FC<HomeTodoProps> = ({ selectedDay }) => {
       if (!hasGenerated && !isGenerating) {
         try {
           setIsGenerating(true);
+          
+          // Clear any existing suggestions first
+          clearAISuggestions();
+          
           const context = getContextFromLocalStorage();
           const aiTodos = await generateTodoList(context);
           
@@ -78,21 +97,37 @@ export const HomeTodo: React.FC<HomeTodoProps> = ({ selectedDay }) => {
     };
 
     generateSuggestions();
-  }, [hasGenerated, addAISuggestions, isGenerating]);
+  }, [hasGenerated, addAISuggestions, isGenerating, clearAISuggestions]);
+
+  // Listen for specific weekly todo selection to clear AI suggestions
+  useEffect(() => {
+    const handleSpecificDailyTodos = (_event: CustomEvent) => {
+      // Clear AI suggestions when a specific weekly todo is selected
+      clearAISuggestions();
+    };
+
+    window.addEventListener('generateSpecificDailyTodos', handleSpecificDailyTodos as EventListener);
+    
+    return () => {
+      window.removeEventListener('generateSpecificDailyTodos', handleSpecificDailyTodos as EventListener);
+    };
+  }, [clearAISuggestions]);
 
   const handleAddTodo = () => {
     if (newTodoText.trim() !== '') {
       addTodo({
         title: newTodoText.trim(),
         date: dayAbbrev,
-        status: 'not-started'
+        status: 'not-started',
+        isSelected: selectedDay === "Today" ? true : false
       });
       setNewTodoText('');
       setShowInput(false);
     }
   };
 
-  const handleToggleTodo = (id: string, completed: boolean) => {
+  const handleToggleTodo = async (id: string, completed: boolean) => {
+    // Always update the status to toggle between completed and in-progress
     updateTodo(id, { 
       status: completed ? 'completed' : 'in-progress' 
     });
@@ -231,7 +266,9 @@ export const HomeTodo: React.FC<HomeTodoProps> = ({ selectedDay }) => {
 
   return (
     <div className="rounded-lg p-4 w-full">
-      <h2 className="mt-0 mb-4 text-2xl text-white">{fullDayName}'s Todo</h2>
+      <h2 className="mt-0 mb-4 text-2xl text-white">
+        {selectedDay === "Today" ? "Selected Tasks" : `${fullDayName}'s Todo`}
+      </h2>
       
       {isGenerating && (
         <div className="mb-4 text-white/60 text-sm flex items-center gap-2">
@@ -245,9 +282,13 @@ export const HomeTodo: React.FC<HomeTodoProps> = ({ selectedDay }) => {
         <>
           {/* Regular todos */}
           <div className="mb-4">
-            <h3 className="text-lg text-white mb-2">Tasks</h3>
+            <h3 className="text-lg text-white mb-2">
+              {selectedDay === "Today" ? "Selected Tasks" : "Tasks"}
+            </h3>
             {filteredTodos.length === 0 ? (
-              <div className="text-white/60 text-sm">No todos for this day</div>
+              <div className="text-white/60 text-sm">
+                {selectedDay === "Today" ? "No selected tasks yet" : "No todos for this day"}
+              </div>
             ) : (
               filteredTodos.map(todo => (
                 <TodoItem key={todo.id} todo={todo} />
@@ -267,7 +308,7 @@ export const HomeTodo: React.FC<HomeTodoProps> = ({ selectedDay }) => {
                   Clear all
                 </button>
               </div>
-              {aiSuggestions.map(suggestion => (
+              {aiSuggestions.slice(0, 2).map(suggestion => (
                 <AISuggestionItem key={suggestion.id} suggestion={suggestion} />
               ))}
             </div>

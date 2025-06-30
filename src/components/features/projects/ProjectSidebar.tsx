@@ -39,6 +39,7 @@ export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<Project['status']>('Not Started');
   const [startDate, setStartDate] = useState('');
+  const [completedDate, setCompletedDate] = useState('');
   const [newMilestoneName, setNewMilestoneName] = useState('');
   const [newMilestoneDueDate, setNewMilestoneDueDate] = useState('');
   const [showMilestoneForm, setShowMilestoneForm] = useState(false);
@@ -47,6 +48,7 @@ export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
   const [showCustomPromptForm, setShowCustomPromptForm] = useState(false);
   const [showReviewSlide, setShowReviewSlide] = useState(false);
   const [generatedMilestones, setGeneratedMilestones] = useState<MilestoneType[]>([]);
+  const [useAI, setUseAI] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -78,6 +80,8 @@ export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
       setDescription(project.description);
       setStatus(project.status);
       setStartDate(project.startDate || '');
+      setCompletedDate(project.completedDate || '');
+      setUseAI(project.useAI || false);
     }
   }, [project]);
 
@@ -118,6 +122,26 @@ export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
       onSave(project.id, {
         ...project,
         startDate: e.target.value || undefined
+      });
+    }
+  };
+
+  const handleCompletedDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCompletedDate(e.target.value);
+    if (project) {
+      onSave(project.id, {
+        ...project,
+        completedDate: e.target.value
+      });
+    }
+  };
+
+  const handleUseAICheckbox = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUseAI(e.target.checked);
+    if (project) {
+      onSave(project.id, {
+        ...project,
+        useAI: e.target.checked
       });
     }
   };
@@ -275,6 +299,29 @@ export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
               </select>
             </div>
 
+            {/* Use AI Assistant Checkbox */}
+            <div className="flex items-center gap-2 mt-2">
+              <input
+                type="checkbox"
+                id="useAI"
+                checked={useAI}
+                onChange={handleUseAICheckbox}
+                className={`w-4 h-4 rounded border-2 ${
+                  theme === 'dark' 
+                    ? 'bg-zinc-900 border-zinc-600 checked:bg-blue-500 checked:border-blue-500' 
+                    : 'bg-white border-gray-300 checked:bg-blue-500 checked:border-blue-500'
+                } focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+              />
+              <Label 
+                htmlFor="useAI" 
+                className={`text-sm cursor-pointer ${
+                  theme === 'dark' ? 'text-white' : 'text-gray-900'
+                }`}
+              >
+                Use AI Assistant
+              </Label>
+            </div>
+
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 min-w-[100px]">
                 <Calendar className="h-4 w-4" />
@@ -296,6 +343,30 @@ export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
                 />
               </div>
             </div>
+            {/* Completed Date - only show if status is Completed */}
+            {status === 'Completed' && (
+              <div className="flex items-center gap-4 mt-2">
+                <div className="flex items-center gap-2 min-w-[100px]">
+                  <Calendar className="h-4 w-4" />
+                  <Label htmlFor="completedDate" className="font-normal font-[ui-sans-serif,_-apple-system,_BlinkMacSystemFont,_'Segoe_UI_Variable_Display',_'Segoe_UI',_Helvetica,_'Apple_Color_Emoji',_Arial,_sans-serif,_'Segoe_UI_Emoji',_'Segoe_UI_Symbol']">Completed Date</Label>
+                </div>
+                <div
+                  className="flex-1 relative cursor-pointer border rounded-md overflow-hidden"
+                  onClick={(e) => {
+                    const input = document.getElementById('completedDate') as HTMLInputElement;
+                    if (input) input.showPicker();
+                  }}
+                >
+                  <Input
+                    id="completedDate"
+                    type="date"
+                    value={completedDate}
+                    onChange={handleCompletedDateChange}
+                    className="w-full cursor-pointer border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">

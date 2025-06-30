@@ -1,20 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { DndProvider, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { DailyTodo  } from '@/components/features/todo/DailyTodo';
+import DailyTodo from '@/components/features/todo/DailyTodo';
 import { ItemTypes } from '@/components/features/todo/types';
 import { WeeklyTodo } from '@/components/features/todo/WeeklyTodo';
 import {Vision} from '@/components/features/goals/Vision';
 import {YearlyGoals} from '@/components/features/goals/YearlyGoals';
 import {QuarterlyGoals} from '@/components/features/goals/QuarterlyGoals';
 import {Nav} from '@/components/layout/Nav';
-
-interface Todo {
-  id: string;
-  text: string;
-  completed: boolean;
-  date: string;
-}
+import { useProjects } from '@/hooks/useProjects';
+import { useTodos, Todo } from '@/hooks/useTodos';
 
 export const Planner: React.FC = () => {
   const currentDate = new Date();
@@ -28,32 +23,16 @@ export const Planner: React.FC = () => {
   // Add a state to force re-renders when todos are moved
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  const { projects } = useProjects();
+  const { todos, updateTodo } = useTodos();
+  const aiCurrentProject = projects.find(p => p.useAI && p.isCurrentWork);
+
   // Function to handle moving a todo to a different day
   const handleMoveTodo = (todo: Todo, targetDay: string) => {
     console.log(`Moving todo ${todo.id} to ${targetDay}`);
     
-    // Get current todos from localStorage
-    const storedTodos = localStorage.getItem('dailyTodos');
-    if (!storedTodos) return;
-    
-    const todos: Todo[] = JSON.parse(storedTodos);
-    
-    // Find the todo to move
-    const todoIndex = todos.findIndex(t => t.id === todo.id);
-    if (todoIndex === -1) {
-      console.error('Todo not found:', todo.id);
-      return;
-    }
-    
-    // Create a new todo with the updated date
-    const updatedTodo = { ...todos[todoIndex], date: targetDay };
-    
-    // Update the todos array
-    const updatedTodos = [...todos];
-    updatedTodos[todoIndex] = updatedTodo;
-    
-    // Save back to localStorage
-    localStorage.setItem('dailyTodos', JSON.stringify(updatedTodos));
+    // Update the todo's date in IndexedDB
+    updateTodo(todo.id, { date: targetDay });
     
     // Force a re-render
     setRefreshTrigger(prev => prev + 1);
@@ -127,7 +106,7 @@ export const Planner: React.FC = () => {
               <div className="flex-1">
                 <DailyTodo 
                   key={`daily-todo-${selectedDay}-${refreshTrigger}`}
-                  selectedDay={selectedDay}
+                  selectedWeeklyTodo={undefined}
                 />
               </div>
             </div>
@@ -135,15 +114,14 @@ export const Planner: React.FC = () => {
             {/* Middle Section - Weekly Todo */}
             <div className="col-span-4">
               <div className="mb-12">
-
-              <WeeklyTodo /> 
+                <WeeklyTodo project={aiCurrentProject} /> 
               </div>
               
               <QuarterlyGoals />
             </div>
 
             {/* Right Section - Vision and Goals */}
-            <div className="col-span-4 space-y-6">
+            <div className="col-span-4 space-y-6 ml-16" style={{ marginLeft: 'calc(4rem + 25px)' }}>
               <Vision />
              
               <YearlyGoals />

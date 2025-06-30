@@ -177,14 +177,22 @@ export const YearlyGoals: React.FC = () => {
               className="mr-2.5 cursor-pointer"
             />
             {editingGoalId === goal.id ? (
-              <input
-                type="text"
-                value={editText}
-                onChange={(e) => setEditText(e.target.value)}
-                onKeyDown={handleEditKeyDown}
-                autoFocus
-                className="flex-1 px-3 py-1 border-none rounded bg-white/20 text-white text-sm placeholder-white/60 focus:outline-none"
-              />
+              <div className="flex-1">
+                <input
+                  type="text"
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  onKeyDown={handleEditKeyDown}
+                  maxLength={25}
+                  autoFocus
+                  className="w-full px-3 py-1 border-none rounded bg-white/20 text-white text-sm placeholder-white/60 focus:outline-none"
+                />
+                {editText.length > 20 && (
+                  <div className="text-xs text-yellow-400 mt-1">
+                    Keep it concise (3-4 words max)
+                  </div>
+                )}
+              </div>
             ) : (
               <label 
                 htmlFor={`yearly-goal-${goal.id}`}
@@ -221,10 +229,16 @@ export const YearlyGoals: React.FC = () => {
             value={newGoalText}
             onChange={(e) => setNewGoalText(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Add a new yearly goal..."
+            placeholder="Add concise goal (3-4 words)..."
+            maxLength={25}
             autoFocus
             className="w-full px-3 py-2 border-none rounded bg-white/20 text-white text-sm placeholder-white/60 focus:outline-none"
           />
+          {newGoalText.length > 20 && (
+            <div className="text-xs text-yellow-400 mt-1">
+              Keep it concise (3-4 words max)
+            </div>
+          )}
         </div>
       ) : (
         <button 

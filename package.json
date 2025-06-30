@@ -23,6 +23,7 @@
     "@radix-ui/react-slot": "^1.1.2",
     "@radix-ui/react-tooltip": "^1.1.8",
     "@refinedev/antd": "^5.46.1",
+    "@supabase/supabase-js": "^2.50.0",
     "@tailwindcss/vite": "^4.0.9",
     "@types/react-beautiful-dnd": "^13.1.8",
     "antd": "^5.24.8",

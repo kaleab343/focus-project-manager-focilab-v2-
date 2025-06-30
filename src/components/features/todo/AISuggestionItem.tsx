@@ -7,11 +7,12 @@ import { AISuggestionItemProps } from './types';
  * @param {AISuggestionItemProps} props - The component props
  * @returns {React.ReactElement} An editable AI suggestion with approve/delete actions
  */
-export const AISuggestionItem: React.FC<AISuggestionItemProps> = ({ 
+export const AISuggestionItem: React.FC<AISuggestionItemProps & { projectId?: string }> = ({ 
   suggestion, 
   onUpdate, 
   onApprove, 
-  onDelete 
+  onDelete, 
+  projectId 
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -44,7 +45,7 @@ export const AISuggestionItem: React.FC<AISuggestionItemProps> = ({
         <div className="flex items-center gap-2">
           <button
             className="text-green-400 hover:text-green-300 transition-colors"
-            onClick={() => onApprove(suggestion.id, 'today')}
+            onClick={() => onApprove(suggestion.id, 'today', projectId)}
             title="Approve"
             aria-label="Approve suggestion"
           >
